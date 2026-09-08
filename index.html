@@ -38,13 +38,13 @@
         <span class="math-side-rhs" id="math-rhs">5</span>
       </div>
       <div class="instruction-hint" id="instruction-hint">
-        💡 <b>Dica:</b> Aplique a mesma operação em ambos os lados e depois arraste elementos opostos para aniquilá-los!
+        💡 <b>Dica:</b> Aplique operações bilaterais na balança e arraste elementos no mesmo prato para fundir termos iguais ou aniquilar opostos!
       </div>
       <div class="color-legend">
-        <span class="legend-item"><span class="legend-dot token-pos-x"></span> <b>+x</b> (Azul)</span>
-        <span class="legend-item"><span class="legend-dot token-neg-x"></span> <b>-x</b> (Laranja)</span>
-        <span class="legend-item"><span class="legend-dot token-pos-1"></span> <b>+1</b> (Verde)</span>
-        <span class="legend-item"><span class="legend-dot token-neg-1"></span> <b>-1</b> (Roxo)</span>
+        <span class="legend-item"><span class="legend-dot token-pos-x"></span> <b>+Variável (x)</b></span>
+        <span class="legend-item"><span class="legend-dot token-neg-x"></span> <b>-Variável (-x)</b></span>
+        <span class="legend-item"><span class="legend-dot token-pos-1"></span> <b>+Constante</b></span>
+        <span class="legend-item"><span class="legend-dot token-neg-1"></span> <b>-Constante</b></span>
       </div>
     </section>
 
@@ -79,33 +79,30 @@
         <span>⚡ Aplicar Operação nos Dois Lados Simultaneamente</span>
       </div>
       <div class="ops-buttons-grid">
-        <button class="op-btn op-btn-pos-one" data-op="+1">
-          <span>+ 1</span>
-          <span class="rule-tag">+1 aos 2 lados</span>
+        <button class="op-btn op-btn-pos-one" data-op="+N">
+          <span>+ N</span>
+          <span class="rule-tag">+N aos 2 lados</span>
         </button>
-        <button class="op-btn op-btn-neg-one" data-op="-1">
-          <span>- 1</span>
-          <span class="rule-tag">-1 aos 2 lados</span>
+        <button class="op-btn op-btn-neg-one" data-op="-N">
+          <span>- N</span>
+          <span class="rule-tag">-N aos 2 lados</span>
         </button>
-        <button class="op-btn op-btn-pos-x" data-op="+x">
-          <span>+ x</span>
-          <span class="rule-tag">+x aos 2 lados</span>
+        <button class="op-btn op-btn-pos-x" data-op="+Nx">
+          <span>+ Nx</span>
+          <span class="rule-tag">+Nx aos 2 lados</span>
         </button>
-        <button class="op-btn op-btn-neg-x" data-op="-x">
-          <span>- x</span>
-          <span class="rule-tag">-x aos 2 lados</span>
+        <button class="op-btn op-btn-neg-x" data-op="-Nx">
+          <span>- Nx</span>
+          <span class="rule-tag">-Nx aos 2 lados</span>
         </button>
-        <!-- Adiciona os botões das operações de multiplicação e divisão <INICIO> -->
         <button class="op-btn op-btn-mult" data-op="*N">
           <span>× N</span>
           <span class="rule-tag">Multiplica por N</span>
         </button>
-
         <button class="op-btn op-btn-div" data-op="/N">
           <span>÷ N</span>
           <span class="rule-tag">Divide por N</span>
         </button>
-        <!-- Adiciona os botões das operações de multiplicação e divisão <FIM> -->
       </div>
     </section>
 
@@ -156,7 +153,7 @@
       <p class="win-desc" id="input-modal-desc" style="margin-bottom: 16px;">Por qual número N você deseja dividir ambos os lados?</p>
 
       <div id="input-modal-field-container" style="margin-bottom: 20px;">
-        <input type="number" id="input-modal-value" value="2" min="2" style="width: 100px; padding: 10px; border-radius: 12px; border: 2px solid #38bdf8; background: #0f172a; color: #fff; text-align: center; font-family: 'Fira Code', monospace; font-size: 20px; font-weight: bold; outline: none;">
+        <input type="number" id="input-modal-value" value="2" step="any" style="width: 120px; padding: 10px; border-radius: 12px; border: 2px solid #38bdf8; background: #0f172a; color: #fff; text-align: center; font-family: 'Fira Code', monospace; font-size: 20px; font-weight: bold; outline: none;">
       </div>
 
       <div style="display: flex; gap: 10px; justify-content: center;">

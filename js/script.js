@@ -217,85 +217,157 @@ animateParticles();
 
 /* =========================================================================
    3. BANCO DE FASES DO JOGO
+/* =========================================================================
+   3. BANCO DE FASES DO JOGO & MOTOR ALGÉBRICO RACIONAL
    ========================================================================= */
+
+// Utilitários de Álgebra Racional (p / q)
+function normalizeRational(num, den) {
+  if (num === 0) return { num: 0, den: 1 };
+  if (den < 0) {
+    num = -num;
+    den = -den;
+  }
+  // Se for divisão exata, simplifica para inteiro
+  if (num % den === 0) {
+    return { num: num / den, den: 1 };
+  }
+  return { num, den };
+}
+
+function addRationals(n1, d1, n2, d2) {
+  if (d1 === d2) {
+    return normalizeRational(n1 + n2, d1);
+  }
+  const newDen = d1 * d2;
+  const newNum = n1 * d2 + n2 * d1;
+  return normalizeRational(newNum, newDen);
+}
+
+function multiplyRational(n, d, factor) {
+  return normalizeRational(n * factor, d);
+}
+
+function divideRational(n, d, divisor) {
+  if (divisor === 0) throw new Error("Divisão por zero não é permitida!");
+  if (divisor < 0) {
+    n = -n;
+    divisor = -divisor;
+  }
+  return normalizeRational(n, d * divisor);
+}
+
+function parseLevelItem(item) {
+  if (item.kind) {
+    const num = item.num !== undefined ? item.num : 1;
+    const den = item.den !== undefined ? item.den : 1;
+    return { kind: item.kind, ...normalizeRational(num, den) };
+  }
+  if (item.type === '+x') return { kind: 'variable', num: 1, den: 1 };
+  if (item.type === '-x') return { kind: 'variable', num: -1, den: 1 };
+  if (item.type === '+1') return { kind: 'constant', num: 1, den: 1 };
+  if (item.type === '-1') return { kind: 'constant', num: -1, den: 1 };
+  return { kind: 'constant', num: 1, den: 1 };
+}
+
 const LEVELS = [
   {
     id: 1,
     title: "Primeiros Passos com Constantes",
-    hint: "Aplique <b>-1</b> duas vezes para cancelar os <b>+1</b> da esquerda, depois aniquile arrastando +1 no -1!",
-    lhs: [{ type: '+x' }, { type: '+1' }, { type: '+1' }],
-    rhs: [{ type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }]
+    hint: "Aplique <b>-N</b> (com valor 2) aos dois lados ou arraste para aniquilar!",
+    lhs: [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: 1, den: 1 }, { kind: 'constant', num: 1, den: 1 }],
+    rhs: [{ kind: 'constant', num: 5, den: 1 }]
   },
   {
     id: 2,
     title: "Neutralizando Números Negativos",
-    hint: "Tem <b>-1</b> na esquerda! Aplique <b>+1</b> em ambos os lados e junte com o <b>-1</b> para virar pó!",
-    lhs: [{ type: '+x' }, { type: '-1' }, { type: '-1' }, { type: '-1' }],
-    rhs: [{ type: '+1' }, { type: '+1' }]
+    hint: "Tem <b>-3</b> na esquerda! Aplique <b>+N</b> com 3 em ambos os lados e aniquile os opostos!",
+    lhs: [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: -3, den: 1 }],
+    rhs: [{ kind: 'constant', num: 2, den: 1 }]
   },
   {
     id: 3,
     title: "Descobrindo Resultados Negativos",
-    hint: "Isole o x aplicando <b>-1</b> quatro vezes aos dois lados e aniquile os pares.",
-    lhs: [{ type: '+x' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }],
-    rhs: [{ type: '+1' }]
+    hint: "Isole o x aplicando <b>-N</b> com 4 aos dois lados e aniquile os pares.",
+    lhs: [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: 4, den: 1 }],
+    rhs: [{ kind: 'constant', num: 1, den: 1 }]
   },
   {
     id: 4,
     title: "Variável nos Dois Lados",
-    hint: "Existe um <b>+x</b> no lado direito! Aplique <b>-x</b> em ambos os lados e aniquile os <b>x</b> da direita!",
-    lhs: [{ type: '+x' }, { type: '+x' }, { type: '+1' }],
-    rhs: [{ type: '+x' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }]
+    hint: "Existe <b>+1x</b> no lado direito! Aplique <b>-Nx</b> com 1 aos dois lados e aniquile o x da direita!",
+    lhs: [{ kind: 'variable', num: 2, den: 1 }, { kind: 'constant', num: 1, den: 1 }],
+    rhs: [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: 4, den: 1 }]
   },
   {
     id: 5,
     title: "Misturando Variáveis e Negativos",
-    hint: "Elimine o <b>x</b> da direita com <b>-x</b> e elimine os <b>-1</b> da esquerda com <b>+1</b>.",
-    lhs: [{ type: '+x' }, { type: '+x' }, { type: '-1' }, { type: '-1' }],
-    rhs: [{ type: '+x' }, { type: '+1' }, { type: '+1' }, { type: '+1' }]
+    hint: "Elimine o <b>x</b> da direita com <b>-Nx</b> e elimine o <b>-2</b> da esquerda com <b>+N</b>.",
+    lhs: [{ kind: 'variable', num: 2, den: 1 }, { kind: 'constant', num: -2, den: 1 }],
+    rhs: [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: 3, den: 1 }]
   },
   {
     id: 6,
-    title: "Balança Tripla com 3x",
-    hint: "Aplique <b>-x</b> duas vezes aos dois lados para cancelar 2x da direita!",
-    lhs: [{ type: '+x' }, { type: '+x' }, { type: '+x' }, { type: '+1' }],
-    rhs: [{ type: '+x' }, { type: '+x' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }]
+    title: "Balança com 3x",
+    hint: "Aplique <b>-Nx</b> com 2 aos dois lados para cancelar o 2x da direita!",
+    lhs: [{ kind: 'variable', num: 3, den: 1 }, { kind: 'constant', num: 1, den: 1 }],
+    rhs: [{ kind: 'variable', num: 2, den: 1 }, { kind: 'constant', num: 5, den: 1 }]
   },
   {
     id: 7,
     title: "Equilíbrio com Negativos em Massa",
-    hint: "Aplique <b>+1</b> cinco vezes para aniquilar todos os <b>-1</b> da esquerda!",
-    lhs: [{ type: '+x' }, { type: '-1' }, { type: '-1' }, { type: '-1' }, { type: '-1' }, { type: '-1' }],
-    rhs: [{ type: '-1' }, { type: '-1' }]
+    hint: "Aplique <b>+N</b> com 5 para aniquilar o <b>-5</b> da esquerda!",
+    lhs: [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: -5, den: 1 }],
+    rhs: [{ kind: 'constant', num: -2, den: 1 }]
   },
   {
     id: 8,
     title: "Constantes Negativas no Resultado",
-    hint: "Primeiro aplique <b>-x</b> para remover x da direita, depois <b>-1</b> para isolar o x.",
-    lhs: [{ type: '+x' }, { type: '+x' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }],
-    rhs: [{ type: '+x' }, { type: '-1' }]
+    hint: "Primeiro aplique <b>-Nx</b> com 1 para remover o x da direita, depois <b>-N</b> com 4 para isolar o x.",
+    lhs: [{ kind: 'variable', num: 2, den: 1 }, { kind: 'constant', num: 4, den: 1 }],
+    rhs: [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: -1, den: 1 }]
   },
   {
     id: 9,
-    title: "O Grande Desafio dos Sinais Opostos",
-    hint: "Remova 2x da direita aplicando <b>-x</b> duas vezes, depois adicione <b>+1</b> para neutralizar.",
-    lhs: [{ type: '+x' }, { type: '+x' }, { type: '+x' }, { type: '-1' }, { type: '-1' }, { type: '-1' }],
-    rhs: [{ type: '+x' }, { type: '+x' }, { type: '-1' }, { type: '-1' }, { type: '-1' }, { type: '-1' }, { type: '-1' }, { type: '-1' }]
+    title: "O Desafio dos Sinais Opostos",
+    hint: "Remova 2x da direita com <b>-Nx</b> com 2, depois adicione <b>+N</b> com 3 para neutralizar.",
+    lhs: [{ kind: 'variable', num: 3, den: 1 }, { kind: 'constant', num: -3, den: 1 }],
+    rhs: [{ kind: 'variable', num: 2, den: 1 }, { kind: 'constant', num: -7, den: 1 }]
   },
   {
     id: 10,
     title: "Mestre Alquimista da Álgebra",
-    hint: "Você domina o método da operação bilateral! Isole o x nesta equação equilibrada.",
-    lhs: [{ type: '+x' }, { type: '+x' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }],
-    rhs: [{ type: '+x' }, { type: '+1' }, { type: '+1' }, { type: '+1' }]
+    hint: "Isole a incógnita x reduzindo variáveis e constantes semelhantes.",
+    lhs: [{ kind: 'variable', num: 2, den: 1 }, { kind: 'constant', num: 5, den: 1 }],
+    rhs: [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: 3, den: 1 }]
   },
-  // Exemplo de nível que exige divisão por 2 no final:
   {
     id: 11,
     title: "A Regra da Divisão",
-    hint: "Primeiro remova as constantes com <b>-1</b> e depois use a operação <b>÷ 2</b> para descobrir o valor de 1x!",
-    lhs: [{ type: '+x' }, { type: '+x' }, { type: '+1' }, { type: '+1' }],
-    rhs: [{ type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }] // 2x + 2 = 8
+    hint: "Primeiro remova as constantes com <b>-N</b> e depois use a operação <b>÷ N</b> com 2 para descobrir o valor de 1x!",
+    lhs: [{ kind: 'variable', num: 2, den: 1 }, { kind: 'constant', num: 2, den: 1 }],
+    rhs: [{ kind: 'constant', num: 8, den: 1 }] // 2x + 2 = 8
+  },
+  {
+    id: 12,
+    title: "Desafio das Frações (4x = -3)",
+    hint: "A balança aceita frações! Divida ambos os lados por <b>4</b> usando a operação <b>÷ N</b> para isolar o x em <b>-3/4</b>!",
+    lhs: [{ kind: 'variable', num: 4, den: 1 }],
+    rhs: [{ kind: 'constant', num: -3, den: 1 }] // 4x = -3
+  },
+  {
+    id: 13,
+    title: "Inversão de Sinais (-x = 7)",
+    hint: "A incógnita está com sinal negativo! Divida ou multiplique por <b>-1</b> para inverter ambos os lados e obter +x!",
+    lhs: [{ kind: 'variable', num: -1, den: 1 }],
+    rhs: [{ kind: 'constant', num: 7, den: 1 }] // -x = 7
+  },
+  {
+    id: 14,
+    title: "Fusão e Grande Equilíbrio",
+    hint: "Arraste elementos iguais no mesmo prato para fundi-los antes de resolver a equação.",
+    lhs: [{ kind: 'variable', num: 2, den: 1 }, { kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: 4, den: 1 }],
+    rhs: [{ kind: 'constant', num: 2, den: 1 }, { kind: 'constant', num: 8, den: 1 }] // 3x + 4 = 10
   }
 ];
 
@@ -349,19 +421,14 @@ document.getElementById('btn-hint').addEventListener('click', () => {
 document.getElementById('btn-next-level').addEventListener('click', () => {
   winModal.classList.remove('active');
   
-  // Verifica se o jogador já concluiu todas as fases
   const isFinalLevel = (completedLevels.size >= LEVELS.length);
 
   if (isFinalLevel) {
-    // Reseta o histórico de fases concluídas para o novo ciclo
     completedLevels.clear();
-    // Recomeça o jogo na Fase 1 (índice 0)
     loadLevel(0);
   } else if (currentLevelIndex < LEVELS.length - 1) {
-    // Avança para a próxima fase durante o progresso normal
     loadLevel(currentLevelIndex + 1);
   } else {
-    // Caso de segurança: volta para a Fase 1
     loadLevel(0);
   }
 });
@@ -375,23 +442,34 @@ document.getElementById('btn-close-custom').addEventListener('click', () => {
 });
 
 document.getElementById('btn-start-custom').addEventListener('click', () => {
-  const lx = parseInt(document.getElementById('cust-lx').value) || 0;
-  const lc = parseInt(document.getElementById('cust-lc').value) || 0;
-  const rx = parseInt(document.getElementById('cust-rx').value) || 0;
-  const rc = parseInt(document.getElementById('cust-rc').value) || 0;
+  const lx = parseInt(document.getElementById('cust-lx').value, 10) || 0;
+  const lc = parseInt(document.getElementById('cust-lc').value, 10) || 0;
+  const rx = parseInt(document.getElementById('cust-rx').value, 10) || 0;
+  const rc = parseInt(document.getElementById('cust-rc').value, 10) || 0;
+
+  // Validação: a != c para garantir solução única determinada
+  if (lx === rx) {
+    showCustomDialog({
+      title: "Equação Inválida",
+      desc: "Os coeficientes de x dos dois lados não podem ser iguais (isso resultaria em 0x, impossível ou indeterminado). Escolha valores diferentes!",
+      icon: "⚠️",
+      isAlert: true
+    });
+    return;
+  }
 
   const customLhs = [];
   const customRhs = [];
 
-  for (let i = 0; i < Math.abs(lx); i++) customLhs.push({ type: lx > 0 ? '+x' : '-x' });
-  for (let i = 0; i < Math.abs(lc); i++) customLhs.push({ type: lc > 0 ? '+1' : '-1' });
-  for (let i = 0; i < Math.abs(rx); i++) customRhs.push({ type: rx > 0 ? '+x' : '-x' });
-  for (let i = 0; i < Math.abs(rc); i++) customRhs.push({ type: rc > 0 ? '+1' : '-1' });
+  if (lx !== 0) customLhs.push({ kind: 'variable', num: lx, den: 1 });
+  if (lc !== 0) customLhs.push({ kind: 'constant', num: lc, den: 1 });
+  if (rx !== 0) customRhs.push({ kind: 'variable', num: rx, den: 1 });
+  if (rc !== 0) customRhs.push({ kind: 'constant', num: rc, den: 1 });
 
   LEVELS.push({
     id: LEVELS.length + 1,
     title: "Laboratório Livre Personalizado",
-    hint: "Isole a variável x aplicando operações equivalentes em ambos os lados.",
+    hint: "Isole a variável x aplicando operações equivalentes em ambos os lados e fundindo termos.",
     lhs: customLhs,
     rhs: customRhs
   });
@@ -411,8 +489,15 @@ function loadLevel(index) {
   levelGoalTitle.textContent = `Nível ${index + 1}: ${lvl.title}`;
   instructionHint.innerHTML = `💡 <b>Dica:</b> ${lvl.hint}`;
 
-  lhsItems = lvl.lhs.map(item => ({ id: itemIdCounter++, type: item.type }));
-  rhsItems = lvl.rhs.map(item => ({ id: itemIdCounter++, type: item.type }));
+  lhsItems = lvl.lhs.map(item => {
+    const parsed = parseLevelItem(item);
+    return { id: itemIdCounter++, ...parsed, side: 'lhs' };
+  });
+
+  rhsItems = lvl.rhs.map(item => {
+    const parsed = parseLevelItem(item);
+    return { id: itemIdCounter++, ...parsed, side: 'rhs' };
+  });
 
   renderAll();
 }
@@ -432,22 +517,63 @@ function renderLevelsPicker() {
   });
 }
 
-function areOpposites(typeA, typeB) {
-  return (
-    (typeA === '+1' && typeB === '-1') ||
-    (typeA === '-1' && typeB === '+1') ||
-    (typeA === '+x' && typeB === '-x') ||
-    (typeA === '-x' && typeB === '+x')
-  );
+function getTokenColors(item) {
+  if (item.kind === 'variable') {
+    return item.num > 0
+      ? { main: '#0284c7', glow: '#38bdf8' }
+      : { main: '#ea580c', glow: '#fb923c' };
+  } else {
+    return item.num > 0
+      ? { main: '#16a34a', glow: '#4ade80' }
+      : { main: '#9333ea', glow: '#c084fc' };
+  }
 }
 
-function getTokenColors(type) {
-  switch (type) {
-    case '+x': return { main: '#0284c7', glow: '#38bdf8' };
-    case '-x': return { main: '#ea580c', glow: '#fb923c' };
-    case '+1': return { main: '#16a34a', glow: '#4ade80' };
-    case '-1': return { main: '#9333ea', glow: '#c084fc' };
+function getTokenClasses(item) {
+  if (item.kind === 'variable') {
+    return item.num > 0 ? 'token-pos-x' : 'token-neg-x';
+  } else {
+    return item.num > 0 ? 'token-pos-1' : 'token-neg-1';
   }
+}
+
+function renderTokenContent(item) {
+  const isVar = item.kind === 'variable';
+  const sign = item.num > 0 ? '+' : '-';
+  const absNum = Math.abs(item.num);
+  const isFrac = item.den > 1;
+
+  let mainHtml = '';
+  if (isFrac) {
+    mainHtml = `
+      <div class="frac-container">
+        <span>${sign}</span>
+        <div class="frac-stack">
+          <span class="frac-num">${absNum}</span>
+          <span class="frac-den">${item.den}</span>
+        </div>
+        ${isVar ? '<span>x</span>' : ''}
+      </div>
+    `;
+  } else {
+    if (isVar) {
+      mainHtml = absNum === 1 ? `<span>${sign}x</span>` : `<span>${sign}${absNum}x</span>`;
+    } else {
+      mainHtml = `<span>${sign}${absNum}</span>`;
+    }
+  }
+
+  let subTxt = '';
+  if (isVar) {
+    subTxt = item.num > 0 ? 'variável' : 'anti-variável';
+  } else {
+    subTxt = item.num > 0 ? 'constante' : 'anti-constante';
+  }
+
+  return `
+    ${mainHtml}
+    <span class="token-sub-label">${subTxt}</span>
+  `;
 }
 
 function renderContainer(items, containerEl, sideName) {
@@ -461,31 +587,14 @@ function renderContainer(items, containerEl, sideName) {
 
   items.forEach(item => {
     const el = document.createElement('div');
-    let typeClass = '';
-    let subTxt = '';
-    if (item.type === '+x') {
-      typeClass = 'token-pos-x';
-      subTxt = 'variável';
-    } else if (item.type === '-x') {
-      typeClass = 'token-neg-x';
-      subTxt = 'anti-x';
-    } else if (item.type === '+1') {
-      typeClass = 'token-pos-1';
-      subTxt = 'unidade';
-    } else if (item.type === '-1') {
-      typeClass = 'token-neg-1';
-      subTxt = 'anti-1';
-    }
+    const typeClass = getTokenClasses(item);
 
     el.className = `game-token ${typeClass}`;
     el.dataset.id = item.id;
-    el.dataset.type = item.type;
+    el.dataset.kind = item.kind;
     el.dataset.side = sideName;
 
-    el.innerHTML = `
-      <span>${item.type}</span>
-      <span class="token-sub-label">${subTxt}</span>
-    `;
+    el.innerHTML = renderTokenContent(item);
 
     setupDrag(el, item, sideName);
     containerEl.appendChild(el);
@@ -495,41 +604,29 @@ function renderContainer(items, containerEl, sideName) {
 function formatAlgebraicSide(items) {
   if (items.length === 0) return '0';
 
-  // 1. Conta o total de x e de constantes
-  let countX = 0;
-  let countNum = 0;
+  return items.map((item, index) => {
+    const isVar = item.kind === 'variable';
+    const isFrac = item.den > 1;
+    const absNum = Math.abs(item.num);
+    const isNegative = item.num < 0;
 
-  items.forEach(item => {
-    if (item.type === '+x') countX += 1;
-    if (item.type === '-x') countX -= 1;
-    if (item.type === '+1') countNum += 1;
-    if (item.type === '-1') countNum -= 1;
-  });
-
-  if (countX === 0 && countNum === 0) return '0';
-
-  const parts = [];
-
-  // 2. Formata o termo de X
-  if (countX !== 0) {
-    if (countX === 1) parts.push('x');
-    else if (countX === -1) parts.push('-x');
-    else parts.push(`${countX}x`);
-  }
-
-  // 3. Formata o termo constante
-  if (countNum !== 0) {
-    if (parts.length > 0) {
-      // Se já existe um termo 'x', adiciona o sinal com espaço
-      if (countNum > 0) parts.push(`+ ${countNum}`);
-      else parts.push(`- ${Math.abs(countNum)}`);
+    let termStr = '';
+    if (isFrac) {
+      termStr = isVar ? `${absNum}/${item.den}x` : `${absNum}/${item.den}`;
     } else {
-      // Se é o primeiro termo do lado
-      parts.push(`${countNum}`);
+      if (isVar) {
+        termStr = absNum === 1 ? 'x' : `${absNum}x`;
+      } else {
+        termStr = `${absNum}`;
+      }
     }
-  }
 
-  return parts.join(' ');
+    if (index === 0) {
+      return isNegative ? `-${termStr}` : termStr;
+    } else {
+      return isNegative ? `- ${termStr}` : `+ ${termStr}`;
+    }
+  }).join(' ');
 }
 
 function renderAll() {
@@ -556,7 +653,7 @@ document.querySelectorAll('.op-btn').forEach(btn => {
 });
 
 /* =========================================================================
-   SISTEMA DE MODAL PERSONALIZADO (Substituição de prompt e alert)
+   SISTEMA DE MODAL PERSONALIZADO
    ========================================================================= */
 const inputModal = document.getElementById('input-modal');
 const inputModalTitle = document.getElementById('input-modal-title');
@@ -567,7 +664,7 @@ const inputModalFieldContainer = document.getElementById('input-modal-field-cont
 const btnInputConfirm = document.getElementById('btn-input-confirm');
 const btnInputCancel = document.getElementById('btn-input-cancel');
 
-function showCustomDialog({ title, desc, icon, isAlert = false, defaultValue = "2", onConfirm }) {
+function showCustomDialog({ title, desc, icon, isAlert = false, defaultValue = "1", onConfirm }) {
   inputModalTitle.textContent = title;
   inputModalDesc.textContent = desc;
   inputModalIcon.textContent = icon || '🧪';
@@ -581,13 +678,16 @@ function showCustomDialog({ title, desc, icon, isAlert = false, defaultValue = "
     btnInputCancel.style.display = 'flex';
     btnInputConfirm.textContent = 'Confirmar';
     inputModalField.value = defaultValue;
-    setTimeout(() => inputModalField.focus(), 100);
+    setTimeout(() => {
+      inputModalField.focus();
+      inputModalField.select();
+    }, 100);
   }
 
   inputModal.classList.add('active');
 
   const handleConfirm = () => {
-    const val = parseInt(inputModalField.value);
+    const val = parseFloat(inputModalField.value);
     cleanup();
     inputModal.classList.remove('active');
     if (onConfirm) onConfirm(val);
@@ -598,99 +698,166 @@ function showCustomDialog({ title, desc, icon, isAlert = false, defaultValue = "
     inputModal.classList.remove('active');
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleConfirm();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancel();
+    }
+  };
+
   const cleanup = () => {
     btnInputConfirm.removeEventListener('click', handleConfirm);
     btnInputCancel.removeEventListener('click', handleCancel);
+    inputModalField.removeEventListener('keydown', handleKeyDown);
   };
 
   btnInputConfirm.addEventListener('click', handleConfirm);
   btnInputCancel.addEventListener('click', handleCancel);
+  inputModalField.addEventListener('keydown', handleKeyDown);
 }
 
 /* =========================================================================
-   APLICAÇÃO DE OPERAÇÃO COM MODAL EMBUTIDO
+   APLICAÇÃO DE OPERAÇÕES BILATERAIS COM VALIDAÇÃO COMPLETA
    ========================================================================= */
 function applyOperationBothSides(opType) {
-  if (opType === '*N' || opType === '/N') {
-    const isMult = opType === '*N';
+  let title = '';
+  let desc = '';
+  let icon = '';
+  let defaultVal = '1';
 
-    showCustomDialog({
-      title: isMult ? "Multiplicação por N" : "Divisão por N",
-      desc: isMult 
-        ? "Por qual número N você deseja MULTIPLICAR ambos os lados?" 
-        : "Por qual número N você deseja DIVIDIR ambos os lados?",
-      icon: isMult ? '✖️' : '➗',
-      defaultValue: "2",
-      onConfirm: (n) => {
-        if (isNaN(n) || n <= 1) {
+  switch (opType) {
+    case '+N':
+      title = 'Adicionar Constante (+N)';
+      desc = 'Qual valor constante N você deseja SOMAR a ambos os lados?';
+      icon = '➕';
+      defaultVal = '1';
+      break;
+    case '-N':
+      title = 'Subtrair Constante (-N)';
+      desc = 'Qual valor constante N você deseja SUBTRAIR de ambos os lados?';
+      icon = '➖';
+      defaultVal = '1';
+      break;
+    case '+Nx':
+      title = 'Adicionar Variável (+Nx)';
+      desc = 'Quantas variáveis x você deseja SOMAR a ambos os lados?';
+      icon = '🔷';
+      defaultVal = '1';
+      break;
+    case '-Nx':
+      title = 'Subtrair Variável (-Nx)';
+      desc = 'Quantas variáveis x você deseja SUBTRAIR de ambos os lados?';
+      icon = '🔶';
+      defaultVal = '1';
+      break;
+    case '*N':
+      title = 'Multiplicação por N (× N)';
+      desc = 'Por qual número N você deseja MULTIPLICAR ambos os lados?';
+      icon = '✖️';
+      defaultVal = '2';
+      break;
+    case '/N':
+      title = 'Divisão por N (÷ N)';
+      desc = 'Por qual número N você deseja DIVIDIR ambos os lados?';
+      icon = '➗';
+      defaultVal = '2';
+      break;
+  }
+
+  showCustomDialog({
+    title,
+    desc,
+    icon,
+    defaultValue: defaultVal,
+    onConfirm: (n) => {
+      if (isNaN(n)) {
+        showCustomDialog({
+          title: 'Valor Inválido',
+          desc: 'Por favor, insira um número válido.',
+          icon: '⚠️',
+          isAlert: true
+        });
+        return;
+      }
+
+      if (opType === '*N' || opType === '/N') {
+        if (n === 0) {
           showCustomDialog({
-            title: "Valor Inválido",
-            desc: "Por favor, insira um número inteiro maior que 1.",
-            icon: "⚠️",
+            title: 'Operação Indefinida',
+            desc: opType === '/N'
+              ? 'A divisão por zero é indefinida na matemática e desequilibra a balança!'
+              : 'Multiplicar por zero anularia toda a equação, destruindo os dois membros.',
+            icon: '⛔',
             isAlert: true
           });
           return;
         }
 
-        if (isMult) {
-          sound.playAddOperation();
-          const originalLhs = [...lhsItems];
-          const originalRhs = [...rhsItems];
+        sound.playAddOperation();
 
-          for (let count = 1; count < n; count++) {
-            originalLhs.forEach(item => lhsItems.push({ id: itemIdCounter++, type: item.type }));
-            originalRhs.forEach(item => rhsItems.push({ id: itemIdCounter++, type: item.type }));
-          }
-          renderAll();
+        if (opType === '*N') {
+          lhsItems = lhsItems.map(item => {
+            const res = multiplyRational(item.num, item.den, n);
+            return { ...item, num: res.num, den: res.den };
+          });
+          rhsItems = rhsItems.map(item => {
+            const res = multiplyRational(item.num, item.den, n);
+            return { ...item, num: res.num, den: res.den };
+          });
         } else {
-          // Validação de divisibilidade
-          const canDivide = (items) => {
-            const counts = {};
-            items.forEach(i => counts[i.type] = (counts[i.type] || 0) + 1);
-            return Object.values(counts).every(c => c % n === 0);
-          };
-
-          if (canDivide(lhsItems) && canDivide(rhsItems) && lhsItems.length > 0 && rhsItems.length > 0) {
-            sound.playAddOperation();
-
-            const reduceByN = (items) => {
-              const counts = {};
-              const result = [];
-              items.forEach(i => {
-                counts[i.type] = (counts[i.type] || 0) + 1;
-                if (counts[i.type] % n === 1) result.push(i);
-              });
-              return result;
-            };
-
-            lhsItems = reduceByN(lhsItems);
-            rhsItems = reduceByN(rhsItems);
-
-            createDustExplosion(window.innerWidth * 0.3, window.innerHeight * 0.5, '#f59e0b', '#38bdf8');
-            createDustExplosion(window.innerWidth * 0.7, window.innerHeight * 0.5, '#f59e0b', '#c084fc');
-            renderAll();
-          } else {
-            showCustomDialog({
-              title: "Operação Impossível",
-              desc: `Para dividir por ${n}, todos os grupos de elementos nos dois lados precisam ter quantidades divisíveis por ${n}!`,
-              icon: "⚠️",
-              isAlert: true
-            });
-          }
+          // Divisão distributiva irrestrita (suporta frações em qualquer estágio)
+          lhsItems = lhsItems.map(item => {
+            const res = divideRational(item.num, item.den, n);
+            return { ...item, num: res.num, den: res.den };
+          });
+          rhsItems = rhsItems.map(item => {
+            const res = divideRational(item.num, item.den, n);
+            return { ...item, num: res.num, den: res.den };
+          });
         }
+
+        createDustExplosion(window.innerWidth * 0.3, window.innerHeight * 0.5, '#f59e0b', '#38bdf8');
+        createDustExplosion(window.innerWidth * 0.7, window.innerHeight * 0.5, '#f59e0b', '#c084fc');
+        renderAll();
+        return;
       }
-    });
-  } 
-  else {
-    sound.playAddOperation();
-    lhsItems.push({ id: itemIdCounter++, type: opType });
-    rhsItems.push({ id: itemIdCounter++, type: opType });
-    renderAll();
-  }
+
+      if (n === 0) {
+        showCustomDialog({
+          title: 'Elemento Neutro',
+          desc: 'Somar ou subtrair 0 não altera a equação.',
+          icon: '💡',
+          isAlert: true
+        });
+        return;
+      }
+
+      sound.playAddOperation();
+
+      if (opType === '+N') {
+        lhsItems.push({ id: itemIdCounter++, kind: 'constant', num: n, den: 1, side: 'lhs' });
+        rhsItems.push({ id: itemIdCounter++, kind: 'constant', num: n, den: 1, side: 'rhs' });
+      } else if (opType === '-N') {
+        lhsItems.push({ id: itemIdCounter++, kind: 'constant', num: -n, den: 1, side: 'lhs' });
+        rhsItems.push({ id: itemIdCounter++, kind: 'constant', num: -n, den: 1, side: 'rhs' });
+      } else if (opType === '+Nx') {
+        lhsItems.push({ id: itemIdCounter++, kind: 'variable', num: n, den: 1, side: 'lhs' });
+        rhsItems.push({ id: itemIdCounter++, kind: 'variable', num: n, den: 1, side: 'rhs' });
+      } else if (opType === '-Nx') {
+        lhsItems.push({ id: itemIdCounter++, kind: 'variable', num: -n, den: 1, side: 'lhs' });
+        rhsItems.push({ id: itemIdCounter++, kind: 'variable', num: -n, den: 1, side: 'rhs' });
+      }
+
+      renderAll();
+    }
+  });
 }
 
 /* =========================================================================
-   7. SISTEMA DE DRAG & DROP SUAVE VIA TRANSLATE (Sem Pulo de Coordenadas)
+   7. SISTEMA DE DRAG & DROP: FUSÃO E ANIQUILAÇÃO PARCIAL/TOTAL
    ========================================================================= */
 let activeDrag = null;
 
@@ -708,7 +875,8 @@ function setupDrag(element, item, sideName) {
       pointerId: e.pointerId,
       startX: e.clientX,
       startY: e.clientY,
-      targetToken: null
+      targetToken: null,
+      isFusion: false
     };
 
     element.classList.add('dragging');
@@ -720,14 +888,16 @@ function setupDrag(element, item, sideName) {
     const dx = e.clientX - activeDrag.startX;
     const dy = e.clientY - activeDrag.startY;
 
-    // Usa translate3d para movimento suave sem alterar fluxo de layout
     element.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(1.18)`;
 
-    // Detecção de colisão com outros tokens no mesmo container
+    // Detecção de colisão estritamente no mesmo prato da balança
     const targetSideDropzone = activeDrag.side === 'lhs' ? dropzoneLhs : dropzoneRhs;
     const tokens = targetSideDropzone.querySelectorAll('.game-token:not(.dragging)');
+    const currentList = activeDrag.side === 'lhs' ? lhsItems : rhsItems;
 
     let foundTarget = null;
+    let isFusion = false;
+
     tokens.forEach(otherEl => {
       const oRect = otherEl.getBoundingClientRect();
       const isOver = (
@@ -737,21 +907,34 @@ function setupDrag(element, item, sideName) {
         e.clientY <= oRect.bottom
       );
 
-      if (isOver && areOpposites(activeDrag.item.type, otherEl.dataset.type)) {
-        foundTarget = otherEl;
+      if (isOver) {
+        const targetId = parseInt(otherEl.dataset.id, 10);
+        const targetItem = currentList.find(i => i.id === targetId);
+        
+        // Elementos em comum (mesma natureza: variável com variável ou constante com constante)
+        if (targetItem && targetItem.kind === activeDrag.item.kind) {
+          foundTarget = otherEl;
+          isFusion = (activeDrag.item.num > 0) === (targetItem.num > 0);
+        }
       }
     });
 
-    // Feedback visual na peça alvo
     tokens.forEach(otherEl => {
       if (otherEl === foundTarget) {
-        otherEl.classList.add('hover-target');
+        if (isFusion) {
+          otherEl.classList.add('hover-fuse');
+          otherEl.classList.remove('hover-target');
+        } else {
+          otherEl.classList.add('hover-target');
+          otherEl.classList.remove('hover-fuse');
+        }
       } else {
-        otherEl.classList.remove('hover-target');
+        otherEl.classList.remove('hover-target', 'hover-fuse');
       }
     });
 
     activeDrag.targetToken = foundTarget;
+    activeDrag.isFusion = isFusion;
   });
 
   const handleDragEnd = (e) => {
@@ -765,30 +948,58 @@ function setupDrag(element, item, sideName) {
     element.style.transform = '';
 
     if (activeDrag.targetToken) {
-      const targetId = parseInt(activeDrag.targetToken.dataset.id);
+      const targetId = parseInt(activeDrag.targetToken.dataset.id, 10);
       const sourceId = activeDrag.item.id;
-      const targetType = activeDrag.targetToken.dataset.type;
+      const targetList = activeDrag.side === 'lhs' ? lhsItems : rhsItems;
+      const targetItem = targetList.find(i => i.id === targetId);
+      const sourceItem = activeDrag.item;
 
-      const rect = activeDrag.targetToken.getBoundingClientRect();
-      const burstX = rect.left + rect.width / 2;
-      const burstY = rect.top + rect.height / 2;
+      if (targetItem && targetItem.kind === sourceItem.kind) {
+        const rect = activeDrag.targetToken.getBoundingClientRect();
+        const burstX = rect.left + rect.width / 2;
+        const burstY = rect.top + rect.height / 2;
 
-      const colorA = getTokenColors(activeDrag.item.type).glow;
-      const colorB = getTokenColors(targetType).glow;
-      createDustExplosion(burstX, burstY, colorA, colorB);
-      sound.playDustAnnihilation();
+        const colorSource = getTokenColors(sourceItem).glow;
+        const colorTarget = getTokenColors(targetItem).glow;
 
-      if (activeDrag.side === 'lhs') {
-        lhsItems = lhsItems.filter(i => i.id !== sourceId && i.id !== targetId);
-      } else {
-        rhsItems = rhsItems.filter(i => i.id !== sourceId && i.id !== targetId);
+        const isFusion = (sourceItem.num > 0) === (targetItem.num > 0);
+        const sum = addRationals(sourceItem.num, sourceItem.den, targetItem.num, targetItem.den);
+
+        if (sum.num === 0) {
+          // Aniquilação completa: ambos os termos se neutralizam
+          createDustExplosion(burstX, burstY, colorSource, colorTarget);
+          sound.playDustAnnihilation();
+
+          if (activeDrag.side === 'lhs') {
+            lhsItems = lhsItems.filter(i => i.id !== sourceId && i.id !== targetId);
+          } else {
+            rhsItems = rhsItems.filter(i => i.id !== sourceId && i.id !== targetId);
+          }
+        } else {
+          // Fusão (mesmo sinal) ou Aniquilação Parcial (sinais opostos)
+          if (isFusion) {
+            createDustExplosion(burstX, burstY, colorSource, '#ffffff');
+            sound.playAddOperation();
+          } else {
+            createDustExplosion(burstX, burstY, colorSource, colorTarget);
+            sound.playDustAnnihilation();
+          }
+
+          targetItem.num = sum.num;
+          targetItem.den = sum.den;
+
+          if (activeDrag.side === 'lhs') {
+            lhsItems = lhsItems.filter(i => i.id !== sourceId);
+          } else {
+            rhsItems = rhsItems.filter(i => i.id !== sourceId);
+          }
+        }
+
+        renderAll();
       }
-
-      renderAll();
     } else {
-      // Limpa alvos se soltou no vazio
       const targetSideDropzone = activeDrag.side === 'lhs' ? dropzoneLhs : dropzoneRhs;
-      targetSideDropzone.querySelectorAll('.game-token').forEach(t => t.classList.remove('hover-target'));
+      targetSideDropzone.querySelectorAll('.game-token').forEach(t => t.classList.remove('hover-target', 'hover-fuse'));
       element.style.transform = '';
     }
 
@@ -800,76 +1011,76 @@ function setupDrag(element, item, sideName) {
 }
 
 /* =========================================================================
-   8. VALIDAÇÃO DE VITÓRIA E ISOLAMENTO DO X
+   8. VALIDAÇÃO DE VITÓRIA ESTREITA E ISOLAMENTO DO X
    ========================================================================= */
-
-const completedLevels = new Set(); // Registra as fases concluídas
+const completedLevels = new Set();
 
 function checkWinCondition() {
-  const lPosX = lhsItems.filter(i => i.type === '+x').length;
-  const lNegX = lhsItems.filter(i => i.type === '-x').length;
-  const lPos1 = lhsItems.filter(i => i.type === '+1').length;
-  const lNeg1 = lhsItems.filter(i => i.type === '-1').length;
+  // Vitória Estrita: exige que todos os termos semelhantes tenham sido fundidos,
+  // restando apenas 1 elemento de cada lado da balança.
+  if (lhsItems.length !== 1 || rhsItems.length !== 1) {
+    return;
+  }
 
-  const rPosX = rhsItems.filter(i => i.type === '+x').length;
-  const rNegX = rhsItems.filter(i => i.type === '-x').length;
-  const rPos1 = rhsItems.filter(i => i.type === '+1').length;
-  const rNeg1 = rhsItems.filter(i => i.type === '-1').length;
+  const left = lhsItems[0];
+  const right = rhsItems[0];
 
+  // Cenário A: +1x isolado à esquerda, e uma constante à direita
   const leftIsolated = (
-    lPosX === 1 && lNegX === 0 && lPos1 === 0 && lNeg1 === 0 &&
-    rPosX === 0 && rNegX === 0 && (rPos1 === 0 || rNeg1 === 0)
+    left.kind === 'variable' && left.num === 1 && left.den === 1 &&
+    right.kind === 'constant'
   );
 
+  // Cenário B: +1x isolado à direita, e uma constante à esquerda
   const rightIsolated = (
-    rPosX === 1 && rNegX === 0 && rPos1 === 0 && rNeg1 === 0 &&
-    lPosX === 0 && lNegX === 0 && (lPos1 === 0 || lNeg1 === 0)
+    right.kind === 'variable' && right.num === 1 && right.den === 1 &&
+    left.kind === 'constant'
   );
 
   if (leftIsolated || rightIsolated) {
-    let finalVal = 0;
-    if (leftIsolated) {
-      finalVal = rPos1 - rNeg1;
-    } else {
-      finalVal = lPos1 - lNeg1;
-    }
-
-    // REGISTRA A FASE COMO CONCLUÍDA
+    const constTerm = leftIsolated ? right : left;
     completedLevels.add(currentLevelIndex);
 
     setTimeout(() => {
-      triggerVictory(finalVal);
+      triggerVictory(constTerm);
     }, 300);
   }
 }
 
-function triggerVictory(value) {
+function formatSolution(constTerm) {
+  const isFrac = constTerm.den > 1;
+  if (!isFrac) {
+    return `x = ${constTerm.num}`;
+  }
+  const sign = constTerm.num < 0 ? '-' : '';
+  const absNum = Math.abs(constTerm.num);
+  return `x = ${sign}${absNum}/${constTerm.den}`;
+}
+
+function triggerVictory(constTerm) {
   sound.playLevelWin();
 
-  // Valida se todas as fases já foram vencidas:
   const isFinalLevel = (completedLevels.size >= LEVELS.length);
 
   if (isFinalLevel) {
-    // Grande celebração por ganhar todas as fases
     createEndGameConfettiShower();
     
     document.querySelector('.win-trophy').textContent = '👑';
     document.querySelector('.win-title').textContent = 'Mestre da Álgebra!';
     document.getElementById('win-message').textContent = 
-      'Parabéns! Você concluiu todos os 11 níveis do EquaLab e dominou o equilíbrio algébrico!';
+      `Parabéns! Você concluiu todos os ${LEVELS.length} níveis do EquaLab e dominou as equações de 1º grau!`;
     document.getElementById('btn-next-level').textContent = '🎮 Jogar Novamente';
   } else {
-    // Vitória em fases normais
     createConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.4);
     
     document.querySelector('.win-trophy').textContent = '🏆';
     document.querySelector('.win-title').textContent = 'Equação Resolvida!';
     document.getElementById('win-message').textContent = 
-      'Excelente trabalho! Você isolou o x mantendo o equilíbrio perfeito em ambos os lados.';
+      'Excelente trabalho! Você isolou o x perfeitamente mantendo o equilíbrio em ambos os pratos.';
     document.getElementById('btn-next-level').textContent = 'Próxima Fase ➔';
   }
 
-  winSolText.textContent = `x = ${value}`;
+  winSolText.textContent = formatSolution(constTerm);
   winModal.classList.add('active');
 }
 
