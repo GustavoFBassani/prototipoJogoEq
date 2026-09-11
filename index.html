@@ -36,15 +36,7 @@
         <span class="math-equal-sign">=</span>
         <span class="math-side-rhs" id="math-rhs">5</span>
       </div>
-      <div class="instruction-hint" id="instruction-hint">
-        💡 <b>Dica:</b> Aplique a mesma operação em ambos os lados e depois arraste elementos opostos para aniquilá-los!
-      </div>
-      <div class="color-legend">
-        <span class="legend-item"><span class="legend-dot token-pos-x"></span> <b>+x</b> (Azul)</span>
-        <span class="legend-item"><span class="legend-dot token-neg-x"></span> <b>-x</b> (Laranja)</span>
-        <span class="legend-item"><span class="legend-dot token-pos-1"></span> <b>+1</b> (Verde)</span>
-        <span class="legend-item"><span class="legend-dot token-neg-1"></span> <b>-1</b> (Roxo)</span>
-      </div>
+      <div class="instruction-hint" id="instruction-hint" hidden></div>
     </section>
 
     <section class="scale-system">
@@ -78,39 +70,49 @@
         <span>⚡ Aplicar Operação nos Dois Lados Simultaneamente</span>
       </div>
       <div class="ops-buttons-grid">
-        <button class="op-btn op-btn-pos-one" data-op="+1">
+        <button type="button" class="op-btn op-btn-pos-one" data-op="+1">
           <span>+ 1</span>
+          <kbd>1</kbd>
           <span class="rule-tag">+1 aos 2 lados</span>
         </button>
-        <button class="op-btn op-btn-neg-one" data-op="-1">
+        <button type="button" class="op-btn op-btn-neg-one" data-op="-1">
           <span>- 1</span>
+          <kbd>2</kbd>
           <span class="rule-tag">-1 aos 2 lados</span>
         </button>
-        <button class="op-btn op-btn-pos-x" data-op="+x">
+        <button type="button" class="op-btn op-btn-pos-x" data-op="+x">
           <span>+ x</span>
+          <kbd>3</kbd>
           <span class="rule-tag">+x aos 2 lados</span>
         </button>
-        <button class="op-btn op-btn-neg-x" data-op="-x">
+        <button type="button" class="op-btn op-btn-neg-x" data-op="-x">
           <span>- x</span>
+          <kbd>4</kbd>
           <span class="rule-tag">-x aos 2 lados</span>
         </button>
-        <!-- Adiciona os botões das operações de multiplicação e divisão <INICIO> -->
-        <button class="op-btn op-btn-mult" data-op="*N">
-          <span>× N</span>
-          <span class="rule-tag">Multiplica por N</span>
+        <button type="button" class="op-btn op-btn-mult" data-op="*N">
+          <span>×</span>
+          <kbd>5</kbd>
+          <span class="rule-tag">nos dois lados</span>
         </button>
-
-        <button class="op-btn op-btn-div" data-op="/N">
-          <span>÷ N</span>
-          <span class="rule-tag">Divide por N</span>
+        <button type="button" class="op-btn op-btn-div" data-op="/N">
+          <span>÷</span>
+          <kbd>6</kbd>
+          <span class="rule-tag">nos dois lados</span>
         </button>
-        <!-- Adiciona os botões das operações de multiplicação e divisão <FIM> -->
+      </div>
+      <div class="op-number-panel" id="op-number-panel" hidden>
+        <p id="op-number-prompt">Qual número você quer usar na operação?</p>
+        <input type="number" id="op-number-value" value="2" min="2">
+        <button type="button" class="btn-next-level" id="btn-op-number-ok">Confirmar</button>
+        <button type="button" class="action-pill-btn" id="btn-op-number-cancel">Cancelar</button>
+        <p class="op-number-note" id="op-number-note" hidden></p>
       </div>
     </section>
 
     <div class="footer-actions">
       <button class="action-pill-btn" id="btn-reset">🔄 Reiniciar Fase</button>
-      <button class="action-pill-btn" id="btn-hint">💡 Dica da Jogada</button>
+      <button class="action-pill-btn" id="btn-hint" aria-pressed="false">💡 Dica da Jogada</button>
       <button class="action-pill-btn" id="btn-custom-eq">🧪 Criar Equação Livre</button>
     </div>
   </main>
@@ -145,23 +147,6 @@
       </div>
       <button class="btn-next-level" style="background: linear-gradient(135deg, #a855f7, #7c3aed); border-color: #d8b4fe;" id="btn-start-custom">Carregar no Laboratório</button>
       <button class="action-pill-btn" style="margin: 12px auto 0; width: 100%; justify-content: center;" id="btn-close-custom">Cancelar</button>
-    </div>
-  </div>
-
-  <div class="modal-backdrop" id="input-modal">
-    <div class="win-card" style="border-color: #38bdf8; box-shadow: 0 0 35px rgba(56, 189, 248, 0.35);">
-      <div class="win-trophy" id="input-modal-icon" style="font-size: 48px; margin-bottom: 8px;">➗</div>
-      <h2 class="win-title" id="input-modal-title" style="color: #38bdf8; font-size: 22px;">Operação de Divisão</h2>
-      <p class="win-desc" id="input-modal-desc" style="margin-bottom: 16px;">Por qual número N você deseja dividir ambos os lados?</p>
-
-      <div id="input-modal-field-container" style="margin-bottom: 20px;">
-        <input type="number" id="input-modal-value" value="2" min="2" style="width: 100px; padding: 10px; border-radius: 12px; border: 2px solid #38bdf8; background: #0f172a; color: #fff; text-align: center; font-family: 'Fira Code', monospace; font-size: 20px; font-weight: bold; outline: none;">
-      </div>
-
-      <div style="display: flex; gap: 10px; justify-content: center;">
-        <button class="btn-next-level" id="btn-input-confirm" style="background: linear-gradient(135deg, #0284c7, #0369a1); border-color: #38bdf8;">Confirmar</button>
-        <button class="action-pill-btn" id="btn-input-cancel" style="justify-content: center; width: auto; padding: 0 20px;">Cancelar</button>
-      </div>
     </div>
   </div>
 

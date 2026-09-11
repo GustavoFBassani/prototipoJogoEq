@@ -215,42 +215,6 @@ main {
   color: #fbbf24;
 }
 
-/* Legenda de Cores */
-.color-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-  margin-top: 6px;
-  padding: 6px 16px;
-  background: rgba(15, 23, 42, 0.6);
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.legend-item b {
-  color: #fff;
-}
-
-.legend-dot {
-  width: 14px;
-  height: 14px;
-  display: inline-block;
-}
-
-.legend-dot.token-pos-x { border-radius: 4px; }
-.legend-dot.token-neg-x { border-radius: 4px; }
-.legend-dot.token-pos-1 { border-radius: 50%; }
-.legend-dot.token-neg-1 { border-radius: 50%; }
-
 /* Balança e Containers */
 .scale-system {
   display: flex;
@@ -575,6 +539,74 @@ main {
   background: rgba(0, 0, 0, 0.25);
   padding: 2px 8px;
   border-radius: 6px;
+}
+
+.op-btn kbd {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  opacity: 0.85;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.operations-panel.is-asking-number .ops-buttons-grid {
+  display: none;
+}
+
+.op-number-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.op-number-panel[hidden] {
+  display: none;
+}
+
+.op-number-panel p {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  color: var(--text-main);
+}
+
+.op-number-note {
+  color: #fbbf24;
+  font-size: 13px;
+}
+
+#op-number-value {
+  width: 88px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 2px solid #38bdf8;
+  background: #0f172a;
+  color: #fff;
+  text-align: center;
+  font-family: 'Fira Code', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  outline: none;
+}
+
+#btn-op-number-ok {
+  width: auto;
+  padding: 10px 18px;
+  font-size: 14px;
+}
+
+#btn-op-number-cancel {
+  width: auto;
+  justify-content: center;
+  padding: 0 18px;
 }
 
 .op-btn-pos-one {

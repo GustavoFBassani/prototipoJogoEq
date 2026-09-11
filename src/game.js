@@ -1,8 +1,8 @@
 import { LEVELS } from './levels.js';
-import { createDialog } from './dialog.js';
 import { renderAll, renderLevelsPicker } from './render.js';
-import { applyOperationBothSides } from './operations.js';
+import { applyOperationBothSides, applyNumberToBothSides, parseOpNumber } from './operations.js';
 import { checkWinCondition } from './win.js';
+import { opFromKey, isTypingTarget } from './keys.js';
 
 function queryEls() {
   return {
@@ -20,14 +20,12 @@ function queryEls() {
     levelsModal: document.getElementById('levels-modal'),
     levelsGrid: document.getElementById('levels-grid'),
     customModal: document.getElementById('custom-modal'),
-    inputModal: document.getElementById('input-modal'),
-    inputModalTitle: document.getElementById('input-modal-title'),
-    inputModalDesc: document.getElementById('input-modal-desc'),
-    inputModalIcon: document.getElementById('input-modal-icon'),
-    inputModalField: document.getElementById('input-modal-value'),
-    inputModalFieldContainer: document.getElementById('input-modal-field-container'),
-    btnInputConfirm: document.getElementById('btn-input-confirm'),
-    btnInputCancel: document.getElementById('btn-input-cancel'),
+    opsPanel: document.querySelector('.operations-panel'),
+    opNumberPanel: document.getElementById('op-number-panel'),
+    opNumberValue: document.getElementById('op-number-value'),
+    opNumberNote: document.getElementById('op-number-note'),
+    btnOpNumberOk: document.getElementById('btn-op-number-ok'),
+    btnOpNumberCancel: document.getElementById('btn-op-number-cancel'),
     btnSound: document.getElementById('btn-sound'),
     btnLevels: document.getElementById('btn-levels'),
     btnCloseLevels: document.getElementById('btn-close-levels'),
@@ -40,6 +38,45 @@ function queryEls() {
   };
 }
 
+function setHintVisible(game, open) {
+  game.hintOpen = open;
+  game.els.instructionHint.hidden = !open;
+  game.els.btnHint.setAttribute('aria-pressed', open ? 'true' : 'false');
+}
+
+function showOpNote(game, text) {
+  game.els.opNumberNote.hidden = !text;
+  game.els.opNumberNote.textContent = text || '';
+}
+
+function beginNumberOp(game, opType) {
+  game.pendingNumberOp = opType;
+  game.els.opsPanel.classList.add('is-asking-number');
+  game.els.opNumberPanel.hidden = false;
+  game.els.opNumberValue.value = '2';
+  showOpNote(game, '');
+  game.els.opNumberValue.focus();
+  game.els.opNumberValue.select();
+}
+
+function cancelNumberOp(game) {
+  game.pendingNumberOp = null;
+  game.els.opsPanel.classList.remove('is-asking-number');
+  game.els.opNumberPanel.hidden = true;
+  showOpNote(game, '');
+}
+
+function confirmNumberOp(game) {
+  const n = parseOpNumber(game.els.opNumberValue.value);
+  if (n == null) {
+    showOpNote(game, 'Escolhe um número maior que 1.');
+    game.els.opNumberValue.focus();
+    return;
+  }
+  const ok = applyNumberToBothSides(game, game.pendingNumberOp, n);
+  if (ok) cancelNumberOp(game);
+}
+
 export function loadLevel(game, index) {
   game.currentLevelIndex = index;
   const lvl = game.levels[index];
@@ -47,6 +84,8 @@ export function loadLevel(game, index) {
   game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
   game.els.levelGoalTitle.textContent = `Nível ${index + 1}: ${lvl.title}`;
   game.els.instructionHint.innerHTML = `💡 <b>Dica:</b> ${lvl.hint}`;
+  setHintVisible(game, false);
+  cancelNumberOp(game);
 
   game.lhsItems = lvl.lhs.map((item) => ({ id: game.itemIdCounter++, type: item.type }));
   game.rhsItems = lvl.rhs.map((item) => ({ id: game.itemIdCounter++, type: item.type }));
@@ -76,7 +115,13 @@ function bindControls(game) {
   game.els.btnHint.addEventListener('click', () => {
     const curLvl = game.levels[game.currentLevelIndex];
     game.els.instructionHint.innerHTML = `💡 <b>Dica:</b> ${curLvl.hint}`;
-    game.els.instructionHint.style.animation = 'pulse-target 0.6s 2';
+    const next = !game.hintOpen;
+    setHintVisible(game, next);
+    if (next) {
+      game.els.instructionHint.style.animation = 'none';
+      void game.els.instructionHint.offsetWidth;
+      game.els.instructionHint.style.animation = 'pulse-target 0.6s 2';
+    }
   });
 
   game.els.btnNextLevel.addEventListener('click', () => {
@@ -133,6 +178,32 @@ function bindControls(game) {
       applyOperationBothSides(game, btn.dataset.op);
     });
   });
+
+  game.els.btnOpNumberOk.addEventListener('click', () => confirmNumberOp(game));
+  game.els.btnOpNumberCancel.addEventListener('click', () => cancelNumberOp(game));
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && game.pendingNumberOp) {
+      e.preventDefault();
+      cancelNumberOp(game);
+      return;
+    }
+
+    if (e.key === 'Enter' && game.pendingNumberOp) {
+      if (isTypingTarget(e.target) && e.target !== game.els.opNumberValue) return;
+      e.preventDefault();
+      confirmNumberOp(game);
+      return;
+    }
+
+    if (isTypingTarget(e.target)) return;
+    if (game.pendingNumberOp) return;
+
+    const op = opFromKey(e.key);
+    if (!op) return;
+    e.preventDefault();
+    applyOperationBothSides(game, op);
+  });
 }
 
 export function bootGame({ sound, particles }) {
@@ -146,8 +217,15 @@ export function bootGame({ sound, particles }) {
     rhsItems: [],
     itemIdCounter: 1,
     completedLevels: new Set(),
+    hintOpen: false,
+    pendingNumberOp: null,
     els,
-    showCustomDialog: createDialog(els),
+    beginNumberOp(opType) {
+      beginNumberOp(game, opType);
+    },
+    showOpNote(text) {
+      showOpNote(game, text);
+    },
     renderAll() {
       renderAll(game);
     },
