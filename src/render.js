@@ -1,18 +1,18 @@
 import { formatAlgebraicSide } from './algebra.js';
 import { setupDrag } from './drag.js';
 
-function tokenMeta(type) {
+function tokenClass(type) {
   switch (type) {
     case '+x':
-      return { typeClass: 'token-pos-x', subTxt: 'variável' };
+      return 'token-pos-x';
     case '-x':
-      return { typeClass: 'token-neg-x', subTxt: 'anti-x' };
+      return 'token-neg-x';
     case '+1':
-      return { typeClass: 'token-pos-1', subTxt: 'unidade' };
+      return 'token-pos-1';
     case '-1':
-      return { typeClass: 'token-neg-1', subTxt: 'anti-1' };
+      return 'token-neg-1';
     default:
-      return { typeClass: '', subTxt: '' };
+      return '';
   }
 }
 
@@ -27,17 +27,13 @@ function renderContainer(items, containerEl, sideName, game) {
 
   items.forEach((item) => {
     const el = document.createElement('div');
-    const { typeClass, subTxt } = tokenMeta(item.type);
-
-    el.className = `game-token ${typeClass}`;
+    el.className = `game-token ${tokenClass(item.type)}`;
     el.dataset.id = item.id;
     el.dataset.type = item.type;
     el.dataset.side = sideName;
+    el.setAttribute('aria-label', item.type);
 
-    el.innerHTML = `
-      <span>${item.type}</span>
-      <span class="token-sub-label">${subTxt}</span>
-    `;
+    el.innerHTML = `<span>${item.type}</span>`;
 
     setupDrag(el, item, sideName, game);
     containerEl.appendChild(el);
@@ -48,9 +44,6 @@ export function renderAll(game) {
   const { els } = game;
   renderContainer(game.lhsItems, els.dropzoneLhs, 'lhs', game);
   renderContainer(game.rhsItems, els.dropzoneRhs, 'rhs', game);
-
-  els.countLhs.textContent = `${game.lhsItems.length} ${game.lhsItems.length === 1 ? 'item' : 'itens'}`;
-  els.countRhs.textContent = `${game.rhsItems.length} ${game.rhsItems.length === 1 ? 'item' : 'itens'}`;
 
   els.mathLhs.textContent = formatAlgebraicSide(game.lhsItems);
   els.mathRhs.textContent = formatAlgebraicSide(game.rhsItems);

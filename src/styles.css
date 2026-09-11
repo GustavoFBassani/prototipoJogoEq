@@ -20,16 +20,29 @@
   -webkit-user-select: none;
 }
 
+html {
+  height: 100%;
+}
+
 body {
   font-family: 'Outfit', sans-serif;
   background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
   color: var(--text-main);
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   overflow-x: hidden;
   position: relative;
+}
+
+.app {
+  width: min(860px, calc(100% - 32px));
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 24px;
 }
 
 #particle-canvas {
@@ -44,8 +57,7 @@ body {
 
 header {
   width: 100%;
-  max-width: 1200px;
-  padding: 14px 24px;
+  padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -124,69 +136,50 @@ header {
 
 main {
   width: 100%;
-  max-width: 1200px;
-  padding: 16px 20px 30px;
+  padding: 24px 0 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
   flex: 1;
 }
 
-/* Card Superior de Equação & Meta */
+.playfield {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+}
+
+/* Equação viva, colada nos dois quadrados */
 .equation-display-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
-  border-radius: 20px;
-  padding: 16px 24px;
-  backdrop-filter: blur(16px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.equation-display-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #38bdf8, #a855f7, #38bdf8);
-  background-size: 200% 100%;
-  animation: gradient-move 6s linear infinite;
-}
-
-@keyframes gradient-move {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 200% 0%; }
-}
-
-.level-goal-text {
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: #38bdf8;
-  margin-bottom: 6px;
+  padding: 0;
+  width: 100%;
+  flex-shrink: 0;
 }
 
 .math-formula-wrapper {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 16px;
   font-family: 'Fira Code', monospace;
-  font-size: 28px;
+  font-size: 34px;
   font-weight: 700;
-  background: rgba(15, 23, 42, 0.7);
-  padding: 8px 24px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 8px;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .math-side-lhs {
@@ -208,60 +201,29 @@ main {
 .instruction-hint {
   font-size: 14px;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-top: 8px;
 }
 
 .instruction-hint b {
   color: #fbbf24;
 }
 
-/* Balança e Containers */
-.scale-system {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  position: relative;
-}
-
-.scale-beam {
-  width: 86%;
-  height: 8px;
-  background: linear-gradient(90deg, #3b82f6, #6366f1, #a855f7);
-  border-radius: 4px;
-  position: relative;
-  box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
-  margin-bottom: 12px;
-}
-
-.scale-beam::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 22px;
-  height: 22px;
-  background: #f59e0b;
-  border: 3px solid #fff;
-  border-radius: 50%;
-  box-shadow: 0 0 14px #f59e0b;
-  z-index: 3;
-}
-
 .containers-grid {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 16px;
-  width: 100%;
+  display: flex;
+  justify-content: center;
   align-items: stretch;
+  gap: 36px;
+  width: 100%;
 }
 
 .equation-container {
   background: var(--bg-card);
   border-radius: 24px;
-  padding: 16px;
-  min-height: 260px;
+  padding: 12px;
+  min-width: 320px;
+  width: 320px;
+  flex: 0 0 320px;
+  min-height: 240px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -280,60 +242,18 @@ main {
   border-color: var(--container-border-right);
 }
 
-.container-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 12px;
-}
-
-.container-title {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.container-lhs .container-title { color: #60a5fa; }
-.container-rhs .container-title { color: #c084fc; }
-
-.items-count {
-  font-size: 12px;
-  font-family: 'Fira Code', monospace;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 2px 8px;
-  border-radius: 6px;
-  color: var(--text-muted);
-}
-
 .items-dropzone {
   flex: 1;
   display: flex;
   flex-wrap: wrap;
-  align-content: flex-start;
+  align-content: center;
+  justify-content: center;
   gap: 12px;
   padding: 12px;
   border-radius: 16px;
   background: rgba(0, 0, 0, 0.25);
-  min-height: 180px;
+  min-height: 168px;
   position: relative;
-}
-
-.items-dropzone.empty-state::after {
-  content: 'Vazio (0)';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: rgba(255, 255, 255, 0.2);
-  font-family: 'Fira Code', monospace;
-  font-size: 14px;
-  pointer-events: none;
 }
 
 .scale-center-divider {
@@ -341,7 +261,6 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
 }
 
 .equal-circle {
@@ -357,19 +276,6 @@ main {
   justify-content: center;
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
   border: 3px solid rgba(255, 255, 255, 0.4);
-  transform: translateY(-4px);
-}
-
-.equal-tag {
-  font-size: 11px;
-  font-weight: 800;
-  color: #fbbf24;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 3px 8px;
-  border-radius: 8px;
-  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 /* ELEMENTOS DO JOGO (Peças +x, -x, +1, -1) */
@@ -377,12 +283,11 @@ main {
   width: 62px;
   height: 62px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-family: 'Fredoka', cursive;
   font-weight: 700;
-  font-size: 20px;
+  font-size: 22px;
   color: #ffffff !important;
   cursor: grab;
   position: relative;
@@ -452,16 +357,6 @@ main {
   border-radius: 50% !important;
 }
 
-.token-sub-label {
-  font-size: 9px;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  opacity: 0.9;
-  text-transform: uppercase;
-  margin-top: -3px;
-  pointer-events: none;
-}
-
 .game-token span {
   pointer-events: none;
 }
@@ -471,39 +366,30 @@ main {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: 24px;
-  padding: 16px 24px;
+  padding: 14px 16px;
   backdrop-filter: blur(16px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-}
-
-.ops-header {
-  font-size: 13px;
-  font-weight: 800;
-  color: #fbbf24;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  width: 100%;
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 .ops-buttons-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
 }
 
 .op-btn {
   flex: 1;
-  min-width: 120px;
-  max-width: 200px;
-  padding: 12px 16px;
+  min-width: 0;
+  padding: 10px 8px;
   border-radius: 16px;
   border: none;
   font-family: 'Fredoka', cursive;
@@ -528,17 +414,6 @@ main {
 
 .op-btn:active {
   transform: translateY(1px) scale(0.98);
-}
-
-.op-btn span.rule-tag {
-  font-size: 10px;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 600;
-  opacity: 0.85;
-  text-transform: uppercase;
-  background: rgba(0, 0, 0, 0.25);
-  padding: 2px 8px;
-  border-radius: 6px;
 }
 
 .op-btn kbd {
@@ -632,8 +507,10 @@ main {
 .footer-actions {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
+  flex-shrink: 0;
+  margin-top: -12px;
 }
 
 .action-pill-btn {
@@ -791,13 +668,18 @@ main {
 
 @media (max-width: 768px) {
   .containers-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
   }
-  .scale-beam { display: none; }
+  .equation-container {
+    min-width: 0;
+    width: min(320px, 100%);
+    flex: 0 0 auto;
+  }
   .scale-center-divider {
     flex-direction: row;
-    margin: 4px 0;
+    margin: 0;
   }
   .equal-circle {
     width: 42px;
@@ -805,16 +687,19 @@ main {
     font-size: 22px;
   }
   .math-formula-wrapper {
-    font-size: 20px;
-    padding: 6px 16px;
+    font-size: 24px;
   }
   .game-token {
     width: 52px;
     height: 52px;
     font-size: 18px;
   }
+  .ops-buttons-grid {
+    flex-wrap: wrap;
+  }
   .op-btn {
-    min-width: 100px;
+    flex: 1 1 calc(33% - 10px);
+    min-width: calc(33% - 10px);
     font-size: 16px;
     padding: 10px;
   }

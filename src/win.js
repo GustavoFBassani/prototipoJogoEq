@@ -24,17 +24,15 @@ export function triggerVictory(game, value) {
   if (isFinalLevel) {
     game.particles.createEndGameConfettiShower();
     document.querySelector('.win-trophy').textContent = '👑';
-    document.querySelector('.win-title').textContent = 'Mestre da Álgebra!';
-    document.getElementById('win-message').textContent =
-      'Parabéns! Você concluiu todos os 11 níveis do EquaLab e dominou o equilíbrio algébrico!';
-    document.getElementById('btn-next-level').textContent = '🎮 Jogar Novamente';
+    document.querySelector('.win-title').textContent = 'Todas as fases';
+    document.getElementById('win-message').textContent = 'O x ficou sozinho em todas.';
+    document.getElementById('btn-next-level').textContent = 'De novo';
   } else {
     game.particles.createConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.4);
     document.querySelector('.win-trophy').textContent = '🏆';
-    document.querySelector('.win-title').textContent = 'Equação Resolvida!';
-    document.getElementById('win-message').textContent =
-      'Excelente trabalho! Você isolou o x mantendo o equilíbrio perfeito em ambos os lados.';
-    document.getElementById('btn-next-level').textContent = 'Próxima Fase ➔';
+    document.querySelector('.win-title').textContent = 'Resolvida';
+    document.getElementById('win-message').textContent = 'O x ficou sozinho.';
+    document.getElementById('btn-next-level').textContent = 'Próxima';
   }
 
   game.els.winSolText.textContent = `x = ${value}`;

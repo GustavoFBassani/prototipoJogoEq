@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EquaLab ⚖️ O Laboratório do Equilíbrio Algébrico</title>
+  <title>EquaLab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@400;600;800;900&family=Fira+Code:wght@500;700&display=swap" rel="stylesheet">
@@ -11,6 +11,7 @@
 <body>
   <canvas id="particle-canvas"></canvas>
 
+  <div class="app">
   <header>
     <div class="logo-area">
       <span class="logo-icon">⚖️</span>
@@ -19,9 +20,8 @@
       </div>
     </div>
     <div class="header-controls">
-      <div class="level-badge">
-        <span>Nível</span>
-        <span id="current-level-label">1/10</span>
+      <div class="level-badge" title="Nível">
+        <span id="current-level-label">1/11</span>
       </div>
       <button class="icon-btn" id="btn-levels" title="Escolher Fase">🗺️</button>
       <button class="icon-btn" id="btn-sound" title="Alternar Som">🔊</button>
@@ -29,107 +29,90 @@
   </header>
 
   <main>
-    <section class="equation-display-card">
-      <div class="level-goal-text" id="level-goal-title">Objetivo: Isole o x</div>
-      <div class="math-formula-wrapper">
-        <span class="math-side-lhs" id="math-lhs">x + 2</span>
-        <span class="math-equal-sign">=</span>
-        <span class="math-side-rhs" id="math-rhs">5</span>
-      </div>
-      <div class="instruction-hint" id="instruction-hint" hidden></div>
-    </section>
-
-    <section class="scale-system">
-      <div class="scale-beam"></div>
-      <div class="containers-grid">
-        <div class="equation-container container-lhs" id="container-lhs">
-          <div class="container-header">
-            <span class="container-title"><span>🔷</span> Lado Esquerdo</span>
-            <span class="items-count" id="count-lhs">0 itens</span>
+    <section class="playfield">
+      <section class="board">
+        <div class="equation-display-card">
+          <div class="math-formula-wrapper">
+            <span class="math-side-lhs" id="math-lhs">x + 2</span>
+            <span class="math-equal-sign">=</span>
+            <span class="math-side-rhs" id="math-rhs">5</span>
           </div>
-          <div class="items-dropzone" id="dropzone-lhs"></div>
+          <div class="instruction-hint" id="instruction-hint" hidden></div>
         </div>
 
-        <div class="scale-center-divider">
-          <div class="equal-circle">=</div>
-          <span class="equal-tag">Equilíbrio</span>
-        </div>
-
-        <div class="equation-container container-rhs" id="container-rhs">
-          <div class="container-header">
-            <span class="container-title"><span>🔮</span> Lado Direito</span>
-            <span class="items-count" id="count-rhs">0 itens</span>
+        <div class="containers-grid">
+          <div class="equation-container container-lhs" id="container-lhs">
+            <div class="items-dropzone" id="dropzone-lhs"></div>
           </div>
-          <div class="items-dropzone" id="dropzone-rhs"></div>
+
+          <div class="scale-center-divider">
+            <div class="equal-circle">=</div>
+          </div>
+
+          <div class="equation-container container-rhs" id="container-rhs">
+            <div class="items-dropzone" id="dropzone-rhs"></div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
     <section class="operations-panel">
-      <div class="ops-header">
-        <span>⚡ Aplicar Operação nos Dois Lados Simultaneamente</span>
-      </div>
       <div class="ops-buttons-grid">
-        <button type="button" class="op-btn op-btn-pos-one" data-op="+1">
+        <button type="button" class="op-btn op-btn-pos-one" data-op="+1" title="Somar 1 nos dois lados">
           <span>+ 1</span>
           <kbd>1</kbd>
-          <span class="rule-tag">+1 aos 2 lados</span>
         </button>
-        <button type="button" class="op-btn op-btn-neg-one" data-op="-1">
+        <button type="button" class="op-btn op-btn-neg-one" data-op="-1" title="Subtrair 1 nos dois lados">
           <span>- 1</span>
           <kbd>2</kbd>
-          <span class="rule-tag">-1 aos 2 lados</span>
         </button>
-        <button type="button" class="op-btn op-btn-pos-x" data-op="+x">
+        <button type="button" class="op-btn op-btn-pos-x" data-op="+x" title="Somar x nos dois lados">
           <span>+ x</span>
           <kbd>3</kbd>
-          <span class="rule-tag">+x aos 2 lados</span>
         </button>
-        <button type="button" class="op-btn op-btn-neg-x" data-op="-x">
+        <button type="button" class="op-btn op-btn-neg-x" data-op="-x" title="Subtrair x nos dois lados">
           <span>- x</span>
           <kbd>4</kbd>
-          <span class="rule-tag">-x aos 2 lados</span>
         </button>
-        <button type="button" class="op-btn op-btn-mult" data-op="*N">
+        <button type="button" class="op-btn op-btn-mult" data-op="*N" title="Multiplicar os dois lados">
           <span>×</span>
           <kbd>5</kbd>
-          <span class="rule-tag">nos dois lados</span>
         </button>
-        <button type="button" class="op-btn op-btn-div" data-op="/N">
+        <button type="button" class="op-btn op-btn-div" data-op="/N" title="Dividir os dois lados">
           <span>÷</span>
           <kbd>6</kbd>
-          <span class="rule-tag">nos dois lados</span>
         </button>
       </div>
       <div class="op-number-panel" id="op-number-panel" hidden>
-        <p id="op-number-prompt">Qual número você quer usar na operação?</p>
+        <p id="op-number-prompt">× ou ÷ por quanto?</p>
         <input type="number" id="op-number-value" value="2" min="2">
-        <button type="button" class="btn-next-level" id="btn-op-number-ok">Confirmar</button>
+        <button type="button" class="btn-next-level" id="btn-op-number-ok">Ok</button>
         <button type="button" class="action-pill-btn" id="btn-op-number-cancel">Cancelar</button>
         <p class="op-number-note" id="op-number-note" hidden></p>
       </div>
     </section>
 
     <div class="footer-actions">
-      <button class="action-pill-btn" id="btn-reset">🔄 Reiniciar Fase</button>
-      <button class="action-pill-btn" id="btn-hint" aria-pressed="false">💡 Dica da Jogada</button>
-      <button class="action-pill-btn" id="btn-custom-eq">🧪 Criar Equação Livre</button>
+      <button class="action-pill-btn" id="btn-reset">Reiniciar</button>
+      <button class="action-pill-btn" id="btn-hint" aria-pressed="false">Dica</button>
+      <button class="action-pill-btn" id="btn-custom-eq">Equação livre</button>
     </div>
+    </section>
   </main>
+  </div>
 
   <div class="modal-backdrop" id="win-modal">
     <div class="win-card">
       <div class="win-trophy">🏆</div>
-      <h2 class="win-title">Equação Resolvida!</h2>
+      <h2 class="win-title">Resolvida</h2>
       <div class="win-equation" id="win-sol-text">x = 3</div>
-      <p class="win-desc" id="win-message">Excelente trabalho! Você isolou o x mantendo o equilíbrio perfeito em ambos os lados.</p>
-      <button class="btn-next-level" id="btn-next-level">Próxima Fase ➔</button>
+      <p class="win-desc" id="win-message">O x ficou sozinho.</p>
+      <button class="btn-next-level" id="btn-next-level">Próxima</button>
     </div>
   </div>
 
   <div class="modal-backdrop" id="levels-modal">
     <div class="win-card" style="border-color: #38bdf8; box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);">
-      <h2 class="win-title" style="color: #38bdf8;">Selecione a Fase</h2>
+      <h2 class="win-title" style="color: #38bdf8;">Fases</h2>
       <div class="level-picker-grid" id="levels-grid"></div>
       <button class="action-pill-btn" style="margin: 0 auto; width: 100%; justify-content: center;" id="btn-close-levels">Fechar</button>
     </div>
@@ -137,15 +120,14 @@
 
   <div class="modal-backdrop" id="custom-modal">
     <div class="win-card" style="border-color: #a855f7;">
-      <h2 class="win-title" style="color: #c084fc;">Laboratório Livre</h2>
-      <p class="win-desc">Configure uma equação com coeficientes e constantes inteiras:</p>
+      <h2 class="win-title" style="color: #c084fc;">Equação livre</h2>
       <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; font-family: 'Fira Code', monospace; font-size: 18px;">
         <input type="number" id="cust-lx" value="2" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #38bdf8; background: #0f172a; color: #fff; text-align: center;"> x +
         <input type="number" id="cust-lc" value="3" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #38bdf8; background: #0f172a; color: #fff; text-align: center;"> =
         <input type="number" id="cust-rx" value="1" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #c084fc; background: #0f172a; color: #fff; text-align: center;"> x +
         <input type="number" id="cust-rc" value="5" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #c084fc; background: #0f172a; color: #fff; text-align: center;">
       </div>
-      <button class="btn-next-level" style="background: linear-gradient(135deg, #a855f7, #7c3aed); border-color: #d8b4fe;" id="btn-start-custom">Carregar no Laboratório</button>
+      <button class="btn-next-level" style="background: linear-gradient(135deg, #a855f7, #7c3aed); border-color: #d8b4fe;" id="btn-start-custom">Jogar</button>
       <button class="action-pill-btn" style="margin: 12px auto 0; width: 100%; justify-content: center;" id="btn-close-custom">Cancelar</button>
     </div>
   </div>

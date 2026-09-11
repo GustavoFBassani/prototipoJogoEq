@@ -10,10 +10,7 @@ function queryEls() {
     dropzoneRhs: document.getElementById('dropzone-rhs'),
     mathLhs: document.getElementById('math-lhs'),
     mathRhs: document.getElementById('math-rhs'),
-    countLhs: document.getElementById('count-lhs'),
-    countRhs: document.getElementById('count-rhs'),
     levelLabel: document.getElementById('current-level-label'),
-    levelGoalTitle: document.getElementById('level-goal-title'),
     instructionHint: document.getElementById('instruction-hint'),
     winModal: document.getElementById('win-modal'),
     winSolText: document.getElementById('win-sol-text'),
@@ -82,8 +79,7 @@ export function loadLevel(game, index) {
   const lvl = game.levels[index];
 
   game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
-  game.els.levelGoalTitle.textContent = `Nível ${index + 1}: ${lvl.title}`;
-  game.els.instructionHint.innerHTML = `💡 <b>Dica:</b> ${lvl.hint}`;
+  game.els.instructionHint.innerHTML = lvl.hint;
   setHintVisible(game, false);
   cancelNumberOp(game);
 
@@ -114,7 +110,7 @@ function bindControls(game) {
 
   game.els.btnHint.addEventListener('click', () => {
     const curLvl = game.levels[game.currentLevelIndex];
-    game.els.instructionHint.innerHTML = `💡 <b>Dica:</b> ${curLvl.hint}`;
+    game.els.instructionHint.innerHTML = curLvl.hint;
     const next = !game.hintOpen;
     setHintVisible(game, next);
     if (next) {
