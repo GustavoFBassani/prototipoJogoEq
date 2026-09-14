@@ -50,7 +50,16 @@ function beginNumberOp(game, opType) {
   game.pendingNumberOp = opType;
   game.els.opsPanel.classList.add('is-asking-number');
   game.els.opNumberPanel.hidden = false;
-  game.els.opNumberValue.value = '2';
+  
+  // Define o valor padrão como 1 para soma/subtração, e 2 para multiplicação/divisão
+  if (opType === '*N' || opType === '/N') {
+    game.els.opNumberValue.value = '2';
+    game.els.opNumberValue.min = '2';
+  } else {
+    game.els.opNumberValue.value = '1';
+    game.els.opNumberValue.min = '1';
+  }
+
   showOpNote(game, '');
   game.els.opNumberValue.focus();
   game.els.opNumberValue.select();
@@ -64,7 +73,7 @@ function cancelNumberOp(game) {
 }
 
 function confirmNumberOp(game) {
-  const n = parseOpNumber(game.els.opNumberValue.value);
+  const n = parseOpNumber(game.els.opNumberValue.value, game.pendingNumberOp);
   if (n == null) {
     showOpNote(game, 'Escolhe um número maior que 1.');
     game.els.opNumberValue.focus();

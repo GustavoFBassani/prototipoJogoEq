@@ -16,6 +16,22 @@ function tokenClass(type) {
   }
 }
 
+// Agrupa itens do mesmo tipo para renderização visual compacta (aglutinação)
+function groupItems(items) {
+  const map = new Map();
+  items.forEach((item) => {
+    if (!map.has(item.type)) {
+      // Mantém o primeiro item como referência principal para o ID e drag
+      map.set(item.type, { ...item, count: 1, originalItems: [item] });
+    } else {
+      const group = map.get(item.type);
+      group.count += 1;
+      group.originalItems.push(item);
+    }
+  });
+  return Array.from(map.values());
+}
+
 function renderContainer(items, containerEl, sideName, game) {
   containerEl.innerHTML = '';
 
@@ -25,17 +41,32 @@ function renderContainer(items, containerEl, sideName, game) {
     containerEl.classList.remove('empty-state');
   }
 
-  items.forEach((item) => {
+  // Agrupa os itens para exibição limpa
+  const groupedItems = groupItems(items);
+
+  groupedItems.forEach((group) => {
+    const isVar = group.type.includes('x');
+    const sign = group.type.charAt(0);
+    
+    // Formata o rótulo visual (ex: "+5", "-3", "+2x")
+    let displayLabel = '';
+    if (isVar) {
+      displayLabel = group.count === 1 ? `${sign}x` : `${sign}${group.count}x`;
+    } else {
+      displayLabel = `${sign}${group.count}`;
+    }
+
     const el = document.createElement('div');
-    el.className = `game-token ${tokenClass(item.type)}`;
-    el.dataset.id = item.id;
-    el.dataset.type = item.type;
+    el.className = `game-token ${tokenClass(group.type)}`;
+    el.dataset.id = group.id;
+    el.dataset.type = group.type;
     el.dataset.side = sideName;
-    el.setAttribute('aria-label', item.type);
+    el.setAttribute('aria-label', displayLabel);
 
-    el.innerHTML = `<span>${item.type}</span>`;
+    el.innerHTML = `<span>${displayLabel}</span>`;
 
-    setupDrag(el, item, sideName, game);
+    // Vincula o arraste utilizando o primeiro item do grupo
+    setupDrag(el, group, sideName, game);
     containerEl.appendChild(el);
   });
 }

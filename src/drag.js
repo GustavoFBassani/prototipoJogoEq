@@ -2,7 +2,7 @@ import { areOpposites, getTokenColors } from './algebra.js';
 
 let activeDrag = null;
 
-export function setupDrag(element, item, sideName, game) {
+export function setupDrag(element, group, sideName, game) {
   element.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     try {
@@ -13,7 +13,7 @@ export function setupDrag(element, item, sideName, game) {
 
     activeDrag = {
       element,
-      item,
+      group,
       side: sideName,
       pointerId: e.pointerId,
       startX: e.clientX,
@@ -45,7 +45,7 @@ export function setupDrag(element, item, sideName, game) {
         e.clientY >= oRect.top &&
         e.clientY <= oRect.bottom;
 
-      if (isOver && areOpposites(activeDrag.item.type, otherEl.dataset.type)) {
+      if (isOver && areOpposites(activeDrag.group.type, otherEl.dataset.type)) {
         foundTarget = otherEl;
       }
     });
@@ -74,23 +74,62 @@ export function setupDrag(element, item, sideName, game) {
     element.style.transform = '';
 
     if (activeDrag.targetToken) {
-      const targetId = parseInt(activeDrag.targetToken.dataset.id, 10);
-      const sourceId = activeDrag.item.id;
       const targetType = activeDrag.targetToken.dataset.type;
+      const sourceType = activeDrag.group.type;
 
       const rect = activeDrag.targetToken.getBoundingClientRect();
       const burstX = rect.left + rect.width / 2;
       const burstY = rect.top + rect.height / 2;
 
-      const colorA = getTokenColors(activeDrag.item.type).glow;
+      const colorA = getTokenColors(sourceType).glow;
       const colorB = getTokenColors(targetType).glow;
       game.particles.createDustExplosion(burstX, burstY, colorA, colorB);
       game.sound.playDustAnnihilation();
 
-      if (activeDrag.side === 'lhs') {
-        game.lhsItems = game.lhsItems.filter((i) => i.id !== sourceId && i.id !== targetId);
+      // Pega a referência correta do array do lado (lhs ou rhs)
+      const itemsArray = activeDrag.side === 'lhs' ? game.lhsItems : game.rhsItems;
+
+      // Conta quantos itens de cada tipo existem neste lado
+      const sourceItems = itemsArray.filter((i) => i.type === sourceType);
+      const targetItems = itemsArray.filter((i) => i.type === targetType);
+
+      const sourceCount = sourceItems.length;
+      const targetCount = targetItems.length;
+
+      // Calcula o saldo final (aniquilação total ou parcial em uma única jogada)
+      if (sourceCount === targetCount) {
+        // Remove todos de ambos os tipos
+        const filtered = itemsArray.filter((i) => i.type !== sourceType && i.type !== targetType);
+        if (activeDrag.side === 'lhs') game.lhsItems = filtered;
+        else game.rhsItems = filtered;
+      } else if (sourceCount > targetCount) {
+        // Sobram itens da origem; remove todos do alvo e reduz a quantidade da origem
+        const toRemoveCount = targetCount;
+        let removed = 0;
+        const filtered = itemsArray.filter((i) => {
+          if (i.type === targetType) return false;
+          if (i.type === sourceType && removed < toRemoveCount) {
+            removed++;
+            return false;
+          }
+          return true;
+        });
+        if (activeDrag.side === 'lhs') game.lhsItems = filtered;
+        else game.rhsItems = filtered;
       } else {
-        game.rhsItems = game.rhsItems.filter((i) => i.id !== sourceId && i.id !== targetId);
+        // Sobram itens do alvo; remove todos da origem e reduz a quantidade do alvo
+        const toRemoveCount = sourceCount;
+        let removed = 0;
+        const filtered = itemsArray.filter((i) => {
+          if (i.type === sourceType) return false;
+          if (i.type === targetType && removed < toRemoveCount) {
+            removed++;
+            return false;
+          }
+          return true;
+        });
+        if (activeDrag.side === 'lhs') game.lhsItems = filtered;
+        else game.rhsItems = filtered;
       }
 
       game.renderAll();
