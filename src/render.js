@@ -46,6 +46,7 @@ export function renderLevelsPicker(game) {
     btn.title = lvl.title;
     btn.addEventListener('click', () => {
       els.levelsModal.classList.remove('active');
+      els.levelsModal.inert = true;
       game.loadLevel(idx);
     });
     els.levelsGrid.appendChild(btn);

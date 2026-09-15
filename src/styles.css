@@ -415,7 +415,7 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  width: 100%;
+  width: 70%;
   flex-shrink: 0;
   margin-top: auto;
 }
@@ -458,6 +458,13 @@ main {
   transform: translateY(1px) scale(0.98);
 }
 
+.op-btn-keys {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
 .op-btn kbd {
   font-family: 'Fira Code', monospace;
   font-size: 11px;
@@ -495,6 +502,51 @@ main {
   color: var(--text-main);
 }
 
+.operand-selector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.operand-selector[hidden] {
+  display: none;
+}
+
+.operand-selector legend {
+  width: 100%;
+  padding: 0;
+  margin-bottom: 10px;
+  text-align: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.operand-selector label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(125, 211, 252, 0.5);
+  background: #0f172a;
+  color: var(--text-main);
+  font-family: 'Fredoka', cursive;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.operand-selector input {
+  accent-color: #38bdf8;
+}
+
 .op-number-note {
   color: #fbbf24;
   font-size: 13px;
@@ -516,14 +568,20 @@ main {
 
 #btn-op-number-ok {
   width: auto;
+  height: 44px;
   padding: 10px 18px;
   font-size: 14px;
 }
 
-#btn-op-number-cancel {
-  width: auto;
-  justify-content: center;
-  padding: 0 18px;
+.op-back-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  color: var(--text-main);
+}
+
+.op-back-btn svg {
+  display: block;
 }
 
 .op-btn-pos-one {

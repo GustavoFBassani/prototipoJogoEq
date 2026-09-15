@@ -2,7 +2,7 @@ import { LEVELS } from './levels.js';
 import { renderAll, renderLevelsPicker } from './render.js';
 import { applyOperationBothSides, applyNumberToBothSides, parseOpNumber } from './operations.js';
 import { checkWinCondition } from './win.js';
-import { opFromKey, isTypingTarget } from './keys.js';
+import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget } from './keys.js';
 
 function queryEls() {
   return {
@@ -19,10 +19,12 @@ function queryEls() {
     customModal: document.getElementById('custom-modal'),
     opsPanel: document.querySelector('.operations-panel'),
     opNumberPanel: document.getElementById('op-number-panel'),
-    opNumberPrompt: document.getElementById('op-number-prompt'),
     opNumberValue: document.getElementById('op-number-value'),
     opNumberNote: document.getElementById('op-number-note'),
     customEqNote: document.getElementById('custom-eq-note'),
+    operandSelector: document.getElementById('operand-selector'),
+    operandLegend: document.getElementById('operand-legend'),
+    operandNumber: document.getElementById('operand-number'),
     btnOpNumberOk: document.getElementById('btn-op-number-ok'),
     btnOpNumberCancel: document.getElementById('btn-op-number-cancel'),
     btnSound: document.getElementById('btn-sound'),
@@ -48,35 +50,41 @@ function showOpNote(game, text) {
   game.els.opNumberNote.textContent = text || '';
 }
 
-const OP_NUMBER_UI = {
-  '+N': { prompt: 'Somar quanto nos dois lados?', value: '1' },
-  '-N': { prompt: 'Subtrair quanto dos dois lados?', value: '1' },
-  '+Nx': { prompt: 'Somar quantos x nos dois lados?', value: '1' },
-  '-Nx': { prompt: 'Subtrair quantos x dos dois lados?', value: '1' },
-  '*N': { prompt: 'Multiplicar os dois lados por quanto?', value: '2' },
-  '/N': { prompt: 'Dividir os dois lados por quanto?', value: '2' },
-};
+function selectedOperand(game) {
+  const checked = game.els.operandSelector.querySelector('input[name="operand"]:checked');
+  return checked?.value === Operand.UNKNOWN ? Operand.UNKNOWN : Operand.NUMBER;
+}
 
-function beginNumberOp(game, opType) {
-  const ui = OP_NUMBER_UI[opType] ?? { prompt: 'Qual número?', value: '1' };
-  game.pendingNumberOp = opType;
+function beginOperation(game, operation) {
+  game.pendingOperation = operation;
   game.els.opsPanel.classList.add('is-asking-number');
   game.els.opNumberPanel.hidden = false;
-  game.els.opNumberPrompt.textContent = ui.prompt;
-  game.els.opNumberValue.value = ui.value;
+
+  const needsOperand = operation === Operation.ADD || operation === Operation.SUBTRACT;
+  game.els.operandSelector.hidden = !needsOperand;
+  if (needsOperand) {
+    game.els.operandLegend.textContent = operation === Operation.ADD ? 'Somar o quê?' : 'Subtrair o quê?';
+    game.els.operandNumber.checked = true;
+    game.els.opNumberValue.value = '1';
+  } else {
+    game.els.opNumberValue.value = '2';
+  }
+
   showOpNote(game, '');
   game.els.opNumberValue.focus();
   game.els.opNumberValue.select();
 }
 
-function cancelNumberOp(game) {
-  game.pendingNumberOp = null;
+function cancelOperation(game) {
+  game.pendingOperation = null;
   game.els.opsPanel.classList.remove('is-asking-number');
   game.els.opNumberPanel.hidden = true;
   showOpNote(game, '');
+  game.els.opNumberValue.blur();
 }
 
-function confirmNumberOp(game) {
+function confirmOperation(game) {
+  const { operation, operand } = operationWithOperand(game.pendingOperation, selectedOperand(game));
   const n = parseOpNumber(game.els.opNumberValue.value);
   if (n == null) {
     const zero = Number(game.els.opNumberValue.value) === 0;
@@ -89,8 +97,58 @@ function confirmNumberOp(game) {
     game.els.opNumberValue.focus();
     return;
   }
-  const ok = applyNumberToBothSides(game, game.pendingNumberOp, n);
-  if (ok) cancelNumberOp(game);
+  const ok = applyNumberToBothSides(game, operation, n, operand);
+  if (ok) cancelOperation(game);
+}
+
+export function advanceFromWinModal(game) {
+  if (!game.els.winModal.classList.contains('active')) return false;
+
+  game.els.winModal.classList.remove('active');
+  game.els.winModal.inert = true;
+
+  const isFinalLevel = game.completedLevels.size >= game.levels.length;
+
+  if (isFinalLevel) {
+    game.completedLevels.clear();
+    game.loadLevel(0);
+  } else if (game.currentLevelIndex < game.levels.length - 1) {
+    game.loadLevel(game.currentLevelIndex + 1);
+  } else {
+    game.loadLevel(0);
+  }
+  return true;
+}
+
+export function handleGameKeydown(game, e) {
+  if (e.key === 'Escape' && game.pendingOperation) {
+    e.preventDefault();
+    cancelOperation(game);
+    return;
+  }
+
+  if (e.key === 'Enter' && game.pendingOperation) {
+    if (isTypingTarget(e.target) && e.target !== game.els.opNumberValue) {
+      e.preventDefault();
+      return;
+    }
+    e.preventDefault();
+    confirmOperation(game);
+    return;
+  }
+
+  if (e.key === 'Enter' && isTypingTarget(e.target)) {
+    e.preventDefault();
+    return;
+  }
+
+  if (isTypingTarget(e.target)) return;
+  if (game.pendingOperation) return;
+
+  const operation = operationFromKey(e.key);
+  if (!operation) return;
+  e.preventDefault();
+  applyOperationBothSides(game, operation);
 }
 
 export function loadLevel(game, index) {
@@ -100,7 +158,7 @@ export function loadLevel(game, index) {
   game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
   game.els.instructionHint.innerHTML = lvl.hint;
   setHintVisible(game, false);
-  cancelNumberOp(game);
+  cancelOperation(game);
 
   game.lhsItems = lvl.lhs.map((item) => ({
     id: game.itemIdCounter++,
@@ -126,11 +184,13 @@ function bindControls(game) {
 
   game.els.btnLevels.addEventListener('click', () => {
     renderLevelsPicker(game);
+    game.els.levelsModal.inert = false;
     game.els.levelsModal.classList.add('active');
   });
 
   game.els.btnCloseLevels.addEventListener('click', () => {
     game.els.levelsModal.classList.remove('active');
+    game.els.levelsModal.inert = true;
   });
 
   game.els.btnReset.addEventListener('click', () => {
@@ -150,27 +210,18 @@ function bindControls(game) {
   });
 
   game.els.btnNextLevel.addEventListener('click', () => {
-    game.els.winModal.classList.remove('active');
-
-    const isFinalLevel = game.completedLevels.size >= game.levels.length;
-
-    if (isFinalLevel) {
-      game.completedLevels.clear();
-      loadLevel(game, 0);
-    } else if (game.currentLevelIndex < game.levels.length - 1) {
-      loadLevel(game, game.currentLevelIndex + 1);
-    } else {
-      loadLevel(game, 0);
-    }
+    advanceFromWinModal(game);
   });
 
   game.els.btnCustomEq.addEventListener('click', () => {
     if (game.els.customEqNote) game.els.customEqNote.hidden = true;
+    game.els.customModal.inert = false;
     game.els.customModal.classList.add('active');
   });
 
   game.els.btnCloseCustom.addEventListener('click', () => {
     game.els.customModal.classList.remove('active');
+    game.els.customModal.inert = true;
   });
 
   game.els.btnStartCustom.addEventListener('click', () => {
@@ -206,6 +257,7 @@ function bindControls(game) {
     });
 
     game.els.customModal.classList.remove('active');
+    game.els.customModal.inert = true;
     loadLevel(game, game.levels.length - 1);
   });
 
@@ -215,31 +267,10 @@ function bindControls(game) {
     });
   });
 
-  game.els.btnOpNumberOk.addEventListener('click', () => confirmNumberOp(game));
-  game.els.btnOpNumberCancel.addEventListener('click', () => cancelNumberOp(game));
+  game.els.btnOpNumberOk.addEventListener('click', () => confirmOperation(game));
+  game.els.btnOpNumberCancel.addEventListener('click', () => cancelOperation(game));
 
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && game.pendingNumberOp) {
-      e.preventDefault();
-      cancelNumberOp(game);
-      return;
-    }
-
-    if (e.key === 'Enter' && game.pendingNumberOp) {
-      if (isTypingTarget(e.target) && e.target !== game.els.opNumberValue) return;
-      e.preventDefault();
-      confirmNumberOp(game);
-      return;
-    }
-
-    if (isTypingTarget(e.target)) return;
-    if (game.pendingNumberOp) return;
-
-    const op = opFromKey(e.key);
-    if (!op) return;
-    e.preventDefault();
-    applyOperationBothSides(game, op);
-  });
+  window.addEventListener('keydown', (e) => handleGameKeydown(game, e));
 }
 
 export function bootGame({ sound, particles }) {
@@ -258,10 +289,10 @@ export function bootGame({ sound, particles }) {
     itemIdCounter: 1,
     completedLevels: new Set(),
     hintOpen: false,
-    pendingNumberOp: null,
+    pendingOperation: null,
     els,
-    beginNumberOp(opType) {
-      beginNumberOp(game, opType);
+    beginOperation(operation) {
+      beginOperation(game, operation);
     },
     showOpNote(text) {
       showOpNote(game, text);

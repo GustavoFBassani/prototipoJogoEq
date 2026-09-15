@@ -1,4 +1,5 @@
 import { divideRational, makeTerm, multiplyRational } from './algebra.js';
+import { Operation, Operand } from './keys.js';
 
 function burstBothSides(game) {
   const width = typeof window === 'undefined' ? 0 : window.innerWidth;
@@ -20,8 +21,8 @@ export function parseOpNumber(raw) {
   return n;
 }
 
-export function applyNumberToBothSides(game, opType, n) {
-  if (opType === '*N') {
+export function applyNumberToBothSides(game, operation, n, operand) {
+  if (operation === Operation.MULTIPLY) {
     game.sound.playAddOperation();
     game.lhsItems = scaleItems(game.lhsItems, (num, den) =>
       multiplyRational(num, den, n)
@@ -34,7 +35,7 @@ export function applyNumberToBothSides(game, opType, n) {
     return true;
   }
 
-  if (opType === '/N') {
+  if (operation === Operation.DIVIDE) {
     game.sound.playAddOperation();
     game.lhsItems = scaleItems(game.lhsItems, (num, den) =>
       divideRational(num, den, n)
@@ -47,17 +48,21 @@ export function applyNumberToBothSides(game, opType, n) {
     return true;
   }
 
-  const kind = opType === '+Nx' || opType === '-Nx' ? 'variable' : 'constant';
-  const signed = opType === '-N' || opType === '-Nx' ? -n : n;
-  const term = makeTerm(kind, signed, 1);
+  if (operation === Operation.ADD || operation === Operation.SUBTRACT) {
+    const kind = operand === Operand.UNKNOWN ? 'variable' : 'constant';
+    const signed = operation === Operation.SUBTRACT ? -n : n;
+    const term = makeTerm(kind, signed, 1);
 
-  game.sound.playAddOperation();
-  game.lhsItems.push({ id: game.itemIdCounter++, ...term });
-  game.rhsItems.push({ id: game.itemIdCounter++, ...term });
-  game.renderAll();
-  return true;
+    game.sound.playAddOperation();
+    game.lhsItems.push({ id: game.itemIdCounter++, ...term });
+    game.rhsItems.push({ id: game.itemIdCounter++, ...term });
+    game.renderAll();
+    return true;
+  }
+
+  return false;
 }
 
-export function applyOperationBothSides(game, opType) {
-  game.beginNumberOp(opType);
+export function applyOperationBothSides(game, operation) {
+  game.beginOperation(operation);
 }

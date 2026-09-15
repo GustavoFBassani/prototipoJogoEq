@@ -30,5 +30,6 @@ export function triggerVictory(game, constTerm) {
   }
 
   game.els.winSolText.textContent = formatSolution(constTerm);
+  game.els.winModal.inert = false;
   game.els.winModal.classList.add('active');
 }

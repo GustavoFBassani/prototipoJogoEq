@@ -8,7 +8,7 @@ import {
   formatSolution,
   winningConstant,
   resolveDrop,
-} from './algebra.js';
+} from '../algebra.js';
 
 describe('normalizeRational', () => {
   it('simplifies only when the numerator divides evenly', () => {
