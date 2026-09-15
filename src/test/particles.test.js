@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { initParticles } from './particles.js';
+import { initParticles } from '../particles.js';
 
 function createParticles(overrides = {}) {
   const fire = vi.fn();

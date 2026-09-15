@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseOpNumber } from './operations.js';
+import { parseOpNumber } from '../operations.js';
 
 describe('parseOpNumber', () => {
   it('accepts integers greater than 1', () => {

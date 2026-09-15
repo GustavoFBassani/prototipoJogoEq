@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { opFromKey, isTypingTarget } from './keys.js';
+import { opFromKey, isTypingTarget } from '../keys.js';
 
 describe('opFromKey', () => {
   it('maps 1-6 to the six operations in button order', () => {

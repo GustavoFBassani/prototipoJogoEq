@@ -4,7 +4,7 @@ import {
   formatAlgebraicSide,
   countTokens,
   isIsolatedX,
-} from './algebra.js';
+} from '../algebra.js';
 
 describe('areOpposites', () => {
   it('matches +1 with -1 and +x with -x', () => {
