@@ -21,7 +21,6 @@ function groupItems(items) {
   const map = new Map();
   items.forEach((item) => {
     if (!map.has(item.type)) {
-      // Mantém o primeiro item como referência principal para o ID e drag
       map.set(item.type, { ...item, count: 1, originalItems: [item] });
     } else {
       const group = map.get(item.type);
@@ -35,20 +34,19 @@ function groupItems(items) {
 function renderContainer(items, containerEl, sideName, game) {
   containerEl.innerHTML = '';
 
-  if (items.length === 0) {
+  if (!items || items.length === 0) {
     containerEl.classList.add('empty-state');
+    return;
   } else {
     containerEl.classList.remove('empty-state');
   }
 
-  // Agrupa os itens para exibição limpa
   const groupedItems = groupItems(items);
 
   groupedItems.forEach((group) => {
     const isVar = group.type.includes('x');
     const sign = group.type.charAt(0);
     
-    // Formata o rótulo visual (ex: "+5", "-3", "+2x")
     let displayLabel = '';
     if (isVar) {
       displayLabel = group.count === 1 ? `${sign}x` : `${sign}${group.count}x`;
@@ -65,7 +63,6 @@ function renderContainer(items, containerEl, sideName, game) {
 
     el.innerHTML = `<span>${displayLabel}</span>`;
 
-    // Vincula o arraste utilizando o primeiro item do grupo
     setupDrag(el, group, sideName, game);
     containerEl.appendChild(el);
   });
@@ -73,12 +70,17 @@ function renderContainer(items, containerEl, sideName, game) {
 
 export function renderAll(game) {
   const { els } = game;
+
+  // CORREÇÃO: Se o lado direito (RHS) possui itens visuais normais (tokens),
+  // significa que estamos em um novo estado/fase e não deve existir fração pendente antiga travando a tela.
+  if (game.rhsItems && game.rhsItems.length > 0) {
+    game.pendingFraction = null;
+  }
+
   renderContainer(game.lhsItems, els.dropzoneLhs, 'lhs', game);
   renderContainer(game.rhsItems, els.dropzoneRhs, 'rhs', game);
 
   els.mathLhs.textContent = formatAlgebraicSide(game.lhsItems);
-  
-  // Utiliza a função com suporte à fração pendente para evitar exibir "0" indevidamente
   els.mathRhs.textContent = formatSideWithFraction(game.rhsItems, game.pendingFraction);
 
   game.checkWin();
@@ -94,6 +96,8 @@ export function renderLevelsPicker(game) {
     btn.title = lvl.title;
     btn.addEventListener('click', () => {
       els.levelsModal.classList.remove('active');
+      
+      game.pendingFraction = null;
       game.loadLevel(idx);
     });
     els.levelsGrid.appendChild(btn);

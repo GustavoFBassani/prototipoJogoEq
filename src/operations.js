@@ -31,6 +31,10 @@ export function applyNumberToBothSides(game, opType, n) {
       return false;
     }
     game.sound.playAddOperation();
+    
+    // Se multiplicar, qualquer fração pendente deixa de existir estruturalmente
+    game.pendingFraction = null;
+
     const originalLhs = [...game.lhsItems];
     const originalRhs = [...game.rhsItems];
 
@@ -61,21 +65,21 @@ export function applyNumberToBothSides(game, opType, n) {
 
       game.sound.playAddOperation();
       
-      // Reduz o lado esquerdo (ex: 4x vira 1x)
+      // Reduz o lado esquerdo
       game.lhsItems = reduceByN(game.lhsItems, n);
 
       // Verifica o lado direito
       if (canDivideSide(game.rhsItems, n)) {
         game.rhsItems = reduceByN(game.rhsItems, n);
+        game.pendingFraction = null; // Limpa se a divisão foi exata em ambos
       } else {
-        // Divisão não exata: calcula o valor total atual do RHS e guarda a fração exata no game state!
+        // Divisão não exata: calcula o valor total atual do RHS
         const totalNum = game.rhsItems.filter(i => i.type === '+1').length - game.rhsItems.filter(i => i.type === '-1').length;
         
-        // Salvamos a fração pendente (ex: -3 / 4)
+        // Salvamos a fração pendente
         game.pendingFraction = { num: totalNum, den: n };
 
-        // Limpamos o RHS visualmente para que o x fique isolado com 1 token, 
-        // e o valor guardado representará o resultado da equação.
+        // Limpamos o RHS visualmente
         game.rhsItems = []; 
       }
 
@@ -90,6 +94,8 @@ export function applyNumberToBothSides(game, opType, n) {
 
   if (opType === '+N' || opType === '-N') {
     game.sound.playAddOperation();
+    game.pendingFraction = null; // Operações de adição/subtração limpam frações passadas
+    
     const itemType = opType === '+N' ? '+1' : '-1';
     for (let i = 0; i < n; i++) {
       game.lhsItems.push({ id: game.itemIdCounter++, type: itemType });
@@ -102,6 +108,8 @@ export function applyNumberToBothSides(game, opType, n) {
 
   if (opType === '+Nx' || opType === '-Nx') {
     game.sound.playAddOperation();
+    game.pendingFraction = null;
+
     const itemType = opType === '+Nx' ? '+x' : '-x';
     for (let i = 0; i < n; i++) {
       game.lhsItems.push({ id: game.itemIdCounter++, type: itemType });
