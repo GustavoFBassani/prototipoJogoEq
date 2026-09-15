@@ -1,4 +1,4 @@
-import { formatAlgebraicSide } from './algebra.js';
+import { formatAlgebraicSide, formatSideWithFraction } from './algebra.js';
 import { setupDrag } from './drag.js';
 
 function tokenClass(type) {
@@ -77,7 +77,9 @@ export function renderAll(game) {
   renderContainer(game.rhsItems, els.dropzoneRhs, 'rhs', game);
 
   els.mathLhs.textContent = formatAlgebraicSide(game.lhsItems);
-  els.mathRhs.textContent = formatAlgebraicSide(game.rhsItems);
+  
+  // Utiliza a função com suporte à fração pendente para evitar exibir "0" indevidamente
+  els.mathRhs.textContent = formatSideWithFraction(game.rhsItems, game.pendingFraction);
 
   game.checkWin();
 }

@@ -1,4 +1,4 @@
-import { countTokens, isIsolatedX } from './algebra.js';
+import { countTokens, isIsolatedX, calculateFractionResult } from './algebra.js';
 
 export function checkWinCondition(game) {
   const left = countTokens(game.lhsItems);
@@ -8,7 +8,11 @@ export function checkWinCondition(game) {
   const rightIsolated = isIsolatedX(right, left);
 
   if (leftIsolated || rightIsolated) {
-    const finalVal = leftIsolated ? right.pos1 - right.neg1 : left.pos1 - left.neg1;
+    // Determina o valor exato (suportando frações via calculateFractionResult)
+    const finalVal = leftIsolated 
+  ? calculateFractionResult(left, right, game.pendingFraction) 
+  : calculateFractionResult(right, left, game.pendingFraction);
+
     game.completedLevels.add(game.currentLevelIndex);
     setTimeout(() => {
       triggerVictory(game, finalVal);

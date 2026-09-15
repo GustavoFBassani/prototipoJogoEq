@@ -96,7 +96,7 @@ export const LEVELS = [
   },
   {
     id: 11,
-    title: 'A Regra da Divisão',
+    title: 'A Regra da Divisão Exata',
     hint: 'Primeiro remova as constantes com <b>-1</b> e depois use a operação <b>÷ 2</b> para descobrir o valor de 1x!',
     lhs: [{ type: '+x' }, { type: '+x' }, { type: '+1' }, { type: '+1' }],
     rhs: [
@@ -109,5 +109,26 @@ export const LEVELS = [
       { type: '+1' },
       { type: '+1' },
     ],
+  },
+  {
+    id: 12,
+    title: 'Introdução às Frações Algébricas',
+    hint: 'Use a divisão para isolar o x quando o resultado envolver frações!',
+    lhs: [{ type: '+x' }, { type: '+x' }, { type: '+x' }, { type: '+x' }],
+    rhs: [{ type: '-1' }, { type: '-1' }, { type: '-1' }],
+  },
+  {
+    id: 13,
+    title: 'Desafio Avançado com Frações',
+    hint: 'Equilibre os termos e aplique divisão fracionária para vencer.',
+    lhs: [{ type: '+x' }, { type: '+x' }, { type: '+x' }],
+    rhs: [{ type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }, { type: '+1' }],
+  },
+  {
+    id: 14,
+    title: 'O Desafio Supremo das Frações',
+    hint: 'O teste final de manipulação algébrica com frações e coeficientes múltiplos.',
+    lhs: [{ type: '+x' }, { type: '+x' }, { type: '+x' }, { type: '+x' }, { type: '+x' }],
+    rhs: [{ type: '-1' }, { type: '-1' }],
   },
 ];

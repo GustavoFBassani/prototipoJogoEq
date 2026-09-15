@@ -6,7 +6,7 @@ export function parseOpNumber(raw, opType) {
   return n;
 }
 
-function canDivide(items, n) {
+function canDivideSide(items, n) {
   const counts = {};
   items.forEach((i) => {
     counts[i.type] = (counts[i.type] || 0) + 1;
@@ -25,7 +25,6 @@ function reduceByN(items, n) {
 }
 
 export function applyNumberToBothSides(game, opType, n) {
-  // 1. Multiplicação (*N)
   if (opType === '*N') {
     if (n <= 1) {
       game.showOpNote('Escolha um número maior que 1.');
@@ -48,68 +47,64 @@ export function applyNumberToBothSides(game, opType, n) {
     return true;
   }
 
-  // 2. Divisão (/N)
   if (opType === '/N') {
     if (n <= 1) {
       game.showOpNote('Escolha um número maior que 1.');
       return false;
     }
-    if (
-      canDivide(game.lhsItems, n) &&
-      canDivide(game.rhsItems, n) &&
-      game.lhsItems.length > 0 &&
-      game.rhsItems.length > 0
-    ) {
+
+    if (game.lhsItems.length > 0 || game.rhsItems.length > 0) {
+      if (!canDivideSide(game.lhsItems, n)) {
+        game.showOpNote(`O lado esquerdo não pode ser dividido exato por ${n}.`);
+        return false;
+      }
+
       game.sound.playAddOperation();
+      
+      // Reduz o lado esquerdo (ex: 4x vira 1x)
       game.lhsItems = reduceByN(game.lhsItems, n);
-      game.rhsItems = reduceByN(game.rhsItems, n);
+
+      // Verifica o lado direito
+      if (canDivideSide(game.rhsItems, n)) {
+        game.rhsItems = reduceByN(game.rhsItems, n);
+      } else {
+        // Divisão não exata: calcula o valor total atual do RHS e guarda a fração exata no game state!
+        const totalNum = game.rhsItems.filter(i => i.type === '+1').length - game.rhsItems.filter(i => i.type === '-1').length;
+        
+        // Salvamos a fração pendente (ex: -3 / 4)
+        game.pendingFraction = { num: totalNum, den: n };
+
+        // Limpamos o RHS visualmente para que o x fique isolado com 1 token, 
+        // e o valor guardado representará o resultado da equação.
+        game.rhsItems = []; 
+      }
+
       game.renderAll();
       game.checkWin();
       return true;
     }
-    game.showOpNote(`Ainda não dá pra dividir por ${n}. Os grupos não estão iguais.`);
+
+    game.showOpNote(`Ainda não dá pra dividir por ${n}.`);
     return false;
   }
 
-  // 3. Adição e Subtração de número (+N / -N) -> Aglutinado em um único item com o valor total
   if (opType === '+N' || opType === '-N') {
     game.sound.playAddOperation();
     const itemType = opType === '+N' ? '+1' : '-1';
-    
-    // Se já houver um item do mesmo tipo, acumula o valor nele (aglutinação)
-    const existingLhs = game.lhsItems.find(i => i.type === itemType);
-    if (existingLhs) {
-      // Como o seu projeto original usa tokens unitários, podemos gerenciar por valor ou manter simples.
-      // Para manter a compatibilidade total com o render e drag.js, adicionamos n itens de uma vez:
-      for (let i = 0; i < n; i++) {
-        game.lhsItems.push({ id: game.itemIdCounter++, type: itemType });
-      }
-    } else {
-      for (let i = 0; i < n; i++) {
-        game.lhsItems.push({ id: game.itemIdCounter++, type: itemType });
-      }
+    for (let i = 0; i < n; i++) {
+      game.lhsItems.push({ id: game.itemIdCounter++, type: itemType });
+      game.rhsItems.push({ id: game.itemIdCounter++, type: itemType });
     }
-
-    const existingRhs = game.rhsItems.find(i => i.type === itemType);
-    if (existingRhs || !existingRhs) {
-      for (let i = 0; i < n; i++) {
-        game.rhsItems.push({ id: game.itemIdCounter++, type: itemType });
-      }
-    }
-
     game.renderAll();
     game.checkWin();
     return true;
   }
 
-  // 4. Adição e Subtração de x (+Nx / -Nx)
   if (opType === '+Nx' || opType === '-Nx') {
     game.sound.playAddOperation();
     const itemType = opType === '+Nx' ? '+x' : '-x';
     for (let i = 0; i < n; i++) {
       game.lhsItems.push({ id: game.itemIdCounter++, type: itemType });
-    }
-    for (let i = 0; i < n; i++) {
       game.rhsItems.push({ id: game.itemIdCounter++, type: itemType });
     }
     game.renderAll();
