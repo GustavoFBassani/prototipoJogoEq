@@ -1,14 +1,32 @@
-export const OP_KEYS = [
-  { key: '1', op: '+1' },
-  { key: '2', op: '-1' },
-  { key: '3', op: '+x' },
-  { key: '4', op: '-x' },
-  { key: '5', op: '*N' },
-  { key: '6', op: '/N' },
+export const Operation = Object.freeze({
+  ADD: 'add',
+  SUBTRACT: 'subtract',
+  MULTIPLY: 'multiply',
+  DIVIDE: 'divide',
+});
+
+export const Operand = Object.freeze({
+  NUMBER: 'number',
+  UNKNOWN: 'unknown',
+});
+
+export const OPERATION_KEYS = [
+  { key: '1', operation: Operation.ADD },
+  { key: '+', operation: Operation.ADD },
+  { key: '2', operation: Operation.SUBTRACT },
+  { key: '-', operation: Operation.SUBTRACT },
+  { key: '3', operation: Operation.MULTIPLY },
+  { key: '*', operation: Operation.MULTIPLY },
+  { key: '4', operation: Operation.DIVIDE },
+  { key: '/', operation: Operation.DIVIDE },
 ];
 
-export function opFromKey(key) {
-  return OP_KEYS.find((row) => row.key === key)?.op ?? null;
+export function operationFromKey(key) {
+  return OPERATION_KEYS.find((row) => row.key === key)?.operation ?? null;
+}
+
+export function operationWithOperand(operation, operand) {
+  return { operation, operand };
 }
 
 export function isTypingTarget(el) {

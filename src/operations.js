@@ -1,7 +1,11 @@
-export function parseOpNumber(raw, opType) {
+import { Operation, Operand } from './keys.js';
+
+export function parseOpNumber(raw, operation) {
   const n = parseInt(String(raw), 10);
   if (Number.isNaN(n)) return null;
-  if ((opType === '*N' || opType === '/N') && n <= 1) return null;
+  if ((operation === Operation.MULTIPLY || operation === Operation.DIVIDE) && n <= 1) {
+    return null;
+  }
   if (n <= 0) return null;
   return n;
 }
@@ -24,15 +28,23 @@ function reduceByN(items, n) {
   return result;
 }
 
-export function applyNumberToBothSides(game, opType, n) {
-  if (opType === '*N') {
+function tokenTypeFor(operation, operand) {
+  if (operation === Operation.ADD) {
+    return operand === Operand.UNKNOWN ? '+x' : '+1';
+  }
+  if (operation === Operation.SUBTRACT) {
+    return operand === Operand.UNKNOWN ? '-x' : '-1';
+  }
+  return null;
+}
+
+export function applyNumberToBothSides(game, operation, n, operand) {
+  if (operation === Operation.MULTIPLY) {
     if (n <= 1) {
       game.showOpNote('Escolha um número maior que 1.');
       return false;
     }
     game.sound.playAddOperation();
-    
-    // Se multiplicar, qualquer fração pendente deixa de existir estruturalmente
     game.pendingFraction = null;
 
     const originalLhs = [...game.lhsItems];
@@ -51,7 +63,7 @@ export function applyNumberToBothSides(game, opType, n) {
     return true;
   }
 
-  if (opType === '/N') {
+  if (operation === Operation.DIVIDE) {
     if (n <= 1) {
       game.showOpNote('Escolha um número maior que 1.');
       return false;
@@ -64,23 +76,17 @@ export function applyNumberToBothSides(game, opType, n) {
       }
 
       game.sound.playAddOperation();
-      
-      // Reduz o lado esquerdo
       game.lhsItems = reduceByN(game.lhsItems, n);
 
-      // Verifica o lado direito
       if (canDivideSide(game.rhsItems, n)) {
         game.rhsItems = reduceByN(game.rhsItems, n);
-        game.pendingFraction = null; // Limpa se a divisão foi exata em ambos
+        game.pendingFraction = null;
       } else {
-        // Divisão não exata: calcula o valor total atual do RHS
         const totalNum = game.rhsItems.filter(i => i.type === '+1').length - game.rhsItems.filter(i => i.type === '-1').length;
-        
-        // Salvamos a fração pendente
+
         game.pendingFraction = { num: totalNum, den: n };
 
-        // Limpamos o RHS visualmente
-        game.rhsItems = []; 
+        game.rhsItems = [];
       }
 
       game.renderAll();
@@ -92,25 +98,10 @@ export function applyNumberToBothSides(game, opType, n) {
     return false;
   }
 
-  if (opType === '+N' || opType === '-N') {
-    game.sound.playAddOperation();
-    game.pendingFraction = null; // Operações de adição/subtração limpam frações passadas
-    
-    const itemType = opType === '+N' ? '+1' : '-1';
-    for (let i = 0; i < n; i++) {
-      game.lhsItems.push({ id: game.itemIdCounter++, type: itemType });
-      game.rhsItems.push({ id: game.itemIdCounter++, type: itemType });
-    }
-    game.renderAll();
-    game.checkWin();
-    return true;
-  }
-
-  if (opType === '+Nx' || opType === '-Nx') {
+  if (operation === Operation.ADD || operation === Operation.SUBTRACT) {
     game.sound.playAddOperation();
     game.pendingFraction = null;
-
-    const itemType = opType === '+Nx' ? '+x' : '-x';
+    const itemType = tokenTypeFor(operation, operand);
     for (let i = 0; i < n; i++) {
       game.lhsItems.push({ id: game.itemIdCounter++, type: itemType });
       game.rhsItems.push({ id: game.itemIdCounter++, type: itemType });
@@ -123,6 +114,6 @@ export function applyNumberToBothSides(game, opType, n) {
   return false;
 }
 
-export function applyOperationBothSides(game, opType) {
-  game.beginNumberOp(opType);
+export function applyOperationBothSides(game, operation) {
+  game.beginOperation(operation);
 }

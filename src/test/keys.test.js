@@ -1,21 +1,45 @@
 import { describe, it, expect } from 'vitest';
-import { opFromKey, isTypingTarget } from '../keys.js';
+import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget } from '../keys.js';
 
-describe('opFromKey', () => {
-  it('maps 1-6 to the six operations in button order', () => {
-    expect(opFromKey('1')).toBe('+1');
-    expect(opFromKey('2')).toBe('-1');
-    expect(opFromKey('3')).toBe('+x');
-    expect(opFromKey('4')).toBe('-x');
-    expect(opFromKey('5')).toBe('*N');
-    expect(opFromKey('6')).toBe('/N');
+describe('operationFromKey', () => {
+  it('maps 1-4 to add, subtract, multiply, divide', () => {
+    expect(operationFromKey('1')).toBe(Operation.ADD);
+    expect(operationFromKey('2')).toBe(Operation.SUBTRACT);
+    expect(operationFromKey('3')).toBe(Operation.MULTIPLY);
+    expect(operationFromKey('4')).toBe(Operation.DIVIDE);
+  });
+
+  it('maps + - * / to the same operations', () => {
+    expect(operationFromKey('+')).toBe(Operation.ADD);
+    expect(operationFromKey('-')).toBe(Operation.SUBTRACT);
+    expect(operationFromKey('*')).toBe(Operation.MULTIPLY);
+    expect(operationFromKey('/')).toBe(Operation.DIVIDE);
   });
 
   it('returns null for keys that are not ops', () => {
-    expect(opFromKey('Enter')).toBeNull();
-    expect(opFromKey('Escape')).toBeNull();
-    expect(opFromKey('x')).toBeNull();
-    expect(opFromKey('7')).toBeNull();
+    expect(operationFromKey('Enter')).toBeNull();
+    expect(operationFromKey('Escape')).toBeNull();
+    expect(operationFromKey('x')).toBeNull();
+    expect(operationFromKey('7')).toBeNull();
+    expect(operationFromKey('5')).toBeNull();
+    expect(operationFromKey('6')).toBeNull();
+  });
+});
+
+describe('operationWithOperand', () => {
+  it('keeps the operation and attaches the operand', () => {
+    expect(operationWithOperand(Operation.ADD, Operand.UNKNOWN)).toEqual({
+      operation: Operation.ADD,
+      operand: Operand.UNKNOWN,
+    });
+    expect(operationWithOperand(Operation.SUBTRACT, Operand.NUMBER)).toEqual({
+      operation: Operation.SUBTRACT,
+      operand: Operand.NUMBER,
+    });
+    expect(operationWithOperand(Operation.MULTIPLY, Operand.NUMBER)).toEqual({
+      operation: Operation.MULTIPLY,
+      operand: Operand.NUMBER,
+    });
   });
 });
 

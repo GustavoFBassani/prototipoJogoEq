@@ -57,36 +57,54 @@
 
     <section class="operations-panel">
       <div class="ops-buttons-grid">
-        <button type="button" class="op-btn op-btn-pos-one" data-op="+N" title="Somar número nos dois lados">
-          <span>+ número</span>
-          <kbd>1</kbd>
+        <button type="button" class="op-btn op-btn-pos-one" data-op="add" title="Somar nos dois lados">
+          <span>+</span>
+          <span class="op-btn-keys">
+            <kbd>1</kbd>
+            <kbd>+</kbd>
+          </span>
         </button>
-        <button type="button" class="op-btn op-btn-neg-one" data-op="-N" title="Subtrair número nos dois lados">
-          <span>- número</span>
-          <kbd>2</kbd>
+        <button type="button" class="op-btn op-btn-neg-one" data-op="subtract" title="Subtrair nos dois lados">
+          <span>-</span>
+          <span class="op-btn-keys">
+            <kbd>2</kbd>
+            <kbd>-</kbd>
+          </span>
         </button>
-        <button type="button" class="op-btn op-btn-pos-x" data-op="+Nx" title="Somar x nos dois lados">
-          <span>+ x</span>
-          <kbd>3</kbd>
-        </button>
-        <button type="button" class="op-btn op-btn-neg-x" data-op="-Nx" title="Subtrair x nos dois lados">
-          <span>- x</span>
-          <kbd>4</kbd>
-        </button>
-        <button type="button" class="op-btn op-btn-mult" data-op="*N" title="Multiplicar os dois lados">
+        <button type="button" class="op-btn op-btn-mult" data-op="multiply" title="Multiplicar os dois lados">
           <span>×</span>
-          <kbd>5</kbd>
+          <span class="op-btn-keys">
+            <kbd>3</kbd>
+            <kbd>*</kbd>
+          </span>
         </button>
-        <button type="button" class="op-btn op-btn-div" data-op="/N" title="Dividir os dois lados">
+        <button type="button" class="op-btn op-btn-div" data-op="divide" title="Dividir os dois lados">
           <span>÷</span>
-          <kbd>6</kbd>
+          <span class="op-btn-keys">
+            <kbd>4</kbd>
+            <kbd>/</kbd>
+          </span>
         </button>
       </div>
       <div class="op-number-panel" id="op-number-panel" hidden>
-        <p id="op-number-prompt">Qual o valor?</p>
+        <fieldset class="operand-selector" id="operand-selector">
+          <legend id="operand-legend">Número ou x?</legend>
+          <label>
+            <input type="radio" name="operand" id="operand-number" value="number" checked>
+            número
+          </label>
+          <label>
+            <input type="radio" name="operand" id="operand-unknown" value="unknown">
+            x
+          </label>
+        </fieldset>
+        <button type="button" class="icon-btn op-back-btn" id="btn-op-number-cancel" title="Voltar às operações" aria-label="Voltar às operações">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          </svg>
+        </button>
         <input type="number" id="op-number-value" value="2" min="2">
         <button type="button" class="btn-next-level" id="btn-op-number-ok">Ok</button>
-        <button type="button" class="action-pill-btn" id="btn-op-number-cancel">Cancelar</button>
         <p class="op-number-note" id="op-number-note" hidden></p>
       </div>
     </section>

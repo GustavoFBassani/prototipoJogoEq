@@ -2,7 +2,7 @@ import { LEVELS } from './levels.js';
 import { renderAll, renderLevelsPicker } from './render.js';
 import { applyOperationBothSides, applyNumberToBothSides, parseOpNumber } from './operations.js';
 import { checkWinCondition } from './win.js';
-import { opFromKey, isTypingTarget } from './keys.js';
+import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget } from './keys.js';
 
 function queryEls() {
   return {
@@ -21,6 +21,9 @@ function queryEls() {
     opNumberPanel: document.getElementById('op-number-panel'),
     opNumberValue: document.getElementById('op-number-value'),
     opNumberNote: document.getElementById('op-number-note'),
+    operandSelector: document.getElementById('operand-selector'),
+    operandLegend: document.getElementById('operand-legend'),
+    operandNumber: document.getElementById('operand-number'),
     btnOpNumberOk: document.getElementById('btn-op-number-ok'),
     btnOpNumberCancel: document.getElementById('btn-op-number-cancel'),
     btnSound: document.getElementById('btn-sound'),
@@ -46,18 +49,26 @@ function showOpNote(game, text) {
   game.els.opNumberNote.textContent = text || '';
 }
 
-function beginNumberOp(game, opType) {
-  game.pendingNumberOp = opType;
+function selectedOperand(game) {
+  const checked = game.els.operandSelector.querySelector('input[name="operand"]:checked');
+  return checked?.value === Operand.UNKNOWN ? Operand.UNKNOWN : Operand.NUMBER;
+}
+
+function beginOperation(game, operation) {
+  game.pendingOperation = operation;
   game.els.opsPanel.classList.add('is-asking-number');
   game.els.opNumberPanel.hidden = false;
-  
-  // Define o valor padrão como 1 para soma/subtração, e 2 para multiplicação/divisão
-  if (opType === '*N' || opType === '/N') {
-    game.els.opNumberValue.value = '2';
-    game.els.opNumberValue.min = '2';
-  } else {
+
+  const needsOperand = operation === Operation.ADD || operation === Operation.SUBTRACT;
+  game.els.operandSelector.hidden = !needsOperand;
+  if (needsOperand) {
+    game.els.operandLegend.textContent = operation === Operation.ADD ? 'Somar o quê?' : 'Subtrair o quê?';
+    game.els.operandNumber.checked = true;
     game.els.opNumberValue.value = '1';
     game.els.opNumberValue.min = '1';
+  } else {
+    game.els.opNumberValue.value = '2';
+    game.els.opNumberValue.min = '2';
   }
 
   showOpNote(game, '');
@@ -65,22 +76,24 @@ function beginNumberOp(game, opType) {
   game.els.opNumberValue.select();
 }
 
-function cancelNumberOp(game) {
-  game.pendingNumberOp = null;
+function cancelOperation(game) {
+  game.pendingOperation = null;
   game.els.opsPanel.classList.remove('is-asking-number');
   game.els.opNumberPanel.hidden = true;
   showOpNote(game, '');
+  game.els.opNumberValue.blur();
 }
 
-function confirmNumberOp(game) {
-  const n = parseOpNumber(game.els.opNumberValue.value, game.pendingNumberOp);
+function confirmOperation(game) {
+  const { operation, operand } = operationWithOperand(game.pendingOperation, selectedOperand(game));
+  const n = parseOpNumber(game.els.opNumberValue.value, operation);
   if (n == null) {
     showOpNote(game, 'Escolhe um número maior que 1.');
     game.els.opNumberValue.focus();
     return;
   }
-  const ok = applyNumberToBothSides(game, game.pendingNumberOp, n);
-  if (ok) cancelNumberOp(game);
+  const ok = applyNumberToBothSides(game, operation, n, operand);
+  if (ok) cancelOperation(game);
 }
 
 export function loadLevel(game, index) {
@@ -90,7 +103,7 @@ export function loadLevel(game, index) {
   game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
   game.els.instructionHint.innerHTML = lvl.hint;
   setHintVisible(game, false);
-  cancelNumberOp(game);
+  cancelOperation(game);
 
   game.lhsItems = lvl.lhs.map((item) => ({ id: game.itemIdCounter++, type: item.type }));
   game.rhsItems = lvl.rhs.map((item) => ({ id: game.itemIdCounter++, type: item.type }));
@@ -184,30 +197,33 @@ function bindControls(game) {
     });
   });
 
-  game.els.btnOpNumberOk.addEventListener('click', () => confirmNumberOp(game));
-  game.els.btnOpNumberCancel.addEventListener('click', () => cancelNumberOp(game));
+  game.els.btnOpNumberOk.addEventListener('click', () => confirmOperation(game));
+  game.els.btnOpNumberCancel.addEventListener('click', () => cancelOperation(game));
 
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && game.pendingNumberOp) {
+    if (e.key === 'Escape' && game.pendingOperation) {
       e.preventDefault();
-      cancelNumberOp(game);
+      cancelOperation(game);
       return;
     }
 
-    if (e.key === 'Enter' && game.pendingNumberOp) {
-      if (isTypingTarget(e.target) && e.target !== game.els.opNumberValue) return;
+    if (e.key === 'Enter' && game.pendingOperation) {
+      if (isTypingTarget(e.target) && e.target !== game.els.opNumberValue) {
+        e.preventDefault();
+        return;
+      }
       e.preventDefault();
-      confirmNumberOp(game);
+      confirmOperation(game);
       return;
     }
 
     if (isTypingTarget(e.target)) return;
-    if (game.pendingNumberOp) return;
+    if (game.pendingOperation) return;
 
-    const op = opFromKey(e.key);
-    if (!op) return;
+    const operation = operationFromKey(e.key);
+    if (!operation) return;
     e.preventDefault();
-    applyOperationBothSides(game, op);
+    applyOperationBothSides(game, operation);
   });
 }
 
@@ -223,10 +239,10 @@ export function bootGame({ sound, particles }) {
     itemIdCounter: 1,
     completedLevels: new Set(),
     hintOpen: false,
-    pendingNumberOp: null,
+    pendingOperation: null,
     els,
-    beginNumberOp(opType) {
-      beginNumberOp(game, opType);
+    beginOperation(operation) {
+      beginOperation(game, operation);
     },
     showOpNote(text) {
       showOpNote(game, text);
