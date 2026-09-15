@@ -23,8 +23,8 @@
       <div class="level-badge" title="Nível">
         <span id="current-level-label">1/11</span>
       </div>
-      <button class="icon-btn" id="btn-levels" title="Escolher Fase">🗺️</button>
-      <button class="icon-btn" id="btn-sound" title="Alternar Som">🔊</button>
+      <button type="button" class="icon-btn" id="btn-levels" title="Escolher Fase">🗺️</button>
+      <button type="button" class="icon-btn" id="btn-sound" title="Alternar Som">🔊</button>
     </div>
   </header>
 
@@ -110,33 +110,33 @@
     </section>
 
     <div class="footer-actions">
-      <button class="action-pill-btn" id="btn-reset">Reiniciar</button>
-      <button class="action-pill-btn" id="btn-hint" aria-pressed="false">Dica</button>
-      <button class="action-pill-btn" id="btn-custom-eq">Equação livre</button>
+      <button type="button" class="action-pill-btn" id="btn-reset">Reiniciar</button>
+      <button type="button" class="action-pill-btn" id="btn-hint" aria-pressed="false">Dica</button>
+      <button type="button" class="action-pill-btn" id="btn-custom-eq">Equação livre</button>
     </div>
     </section>
   </main>
   </div>
 
-  <div class="modal-backdrop" id="win-modal">
+  <div class="modal-backdrop" id="win-modal" inert>
     <div class="win-card">
       <div class="win-trophy">🏆</div>
       <h2 class="win-title">Resolvida</h2>
       <div class="win-equation" id="win-sol-text">x = 3</div>
       <p class="win-desc" id="win-message">O x ficou sozinho.</p>
-      <button class="btn-next-level" id="btn-next-level">Próxima</button>
+      <button type="button" class="btn-next-level" id="btn-next-level">Próxima</button>
     </div>
   </div>
 
-  <div class="modal-backdrop" id="levels-modal">
+  <div class="modal-backdrop" id="levels-modal" inert>
     <div class="win-card" style="border-color: #38bdf8; box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);">
       <h2 class="win-title" style="color: #38bdf8;">Fases</h2>
       <div class="level-picker-grid" id="levels-grid"></div>
-      <button class="action-pill-btn" style="margin: 0 auto; width: 100%; justify-content: center;" id="btn-close-levels">Fechar</button>
+      <button type="button" class="action-pill-btn" style="margin: 0 auto; width: 100%; justify-content: center;" id="btn-close-levels">Fechar</button>
     </div>
   </div>
 
-  <div class="modal-backdrop" id="custom-modal">
+  <div class="modal-backdrop" id="custom-modal" inert>
     <div class="win-card" style="border-color: #a855f7;">
       <h2 class="win-title" style="color: #c084fc;">Equação livre</h2>
       <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; font-family: 'Fira Code', monospace; font-size: 18px;">
@@ -145,8 +145,8 @@
         <input type="number" id="cust-rx" value="1" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #c084fc; background: #0f172a; color: #fff; text-align: center;"> x +
         <input type="number" id="cust-rc" value="5" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #c084fc; background: #0f172a; color: #fff; text-align: center;">
       </div>
-      <button class="btn-next-level" style="background: linear-gradient(135deg, #a855f7, #7c3aed); border-color: #d8b4fe;" id="btn-start-custom">Jogar</button>
-      <button class="action-pill-btn" style="margin: 12px auto 0; width: 100%; justify-content: center;" id="btn-close-custom">Cancelar</button>
+      <button type="button" class="btn-next-level" style="background: linear-gradient(135deg, #a855f7, #7c3aed); border-color: #d8b4fe;" id="btn-start-custom">Jogar</button>
+      <button type="button" class="action-pill-btn" style="margin: 12px auto 0; width: 100%; justify-content: center;" id="btn-close-custom">Cancelar</button>
     </div>
   </div>
 

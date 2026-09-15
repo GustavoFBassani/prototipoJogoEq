@@ -40,5 +40,6 @@ export function triggerVictory(game, value) {
   }
 
   game.els.winSolText.textContent = `x = ${value}`;
+  game.els.winModal.inert = false;
   game.els.winModal.classList.add('active');
 }

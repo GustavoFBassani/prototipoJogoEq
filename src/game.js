@@ -96,6 +96,56 @@ function confirmOperation(game) {
   if (ok) cancelOperation(game);
 }
 
+export function advanceFromWinModal(game) {
+  if (!game.els.winModal.classList.contains('active')) return false;
+
+  game.els.winModal.classList.remove('active');
+  game.els.winModal.inert = true;
+
+  const isFinalLevel = game.completedLevels.size >= game.levels.length;
+
+  if (isFinalLevel) {
+    game.completedLevels.clear();
+    game.loadLevel(0);
+  } else if (game.currentLevelIndex < game.levels.length - 1) {
+    game.loadLevel(game.currentLevelIndex + 1);
+  } else {
+    game.loadLevel(0);
+  }
+  return true;
+}
+
+export function handleGameKeydown(game, e) {
+  if (e.key === 'Escape' && game.pendingOperation) {
+    e.preventDefault();
+    cancelOperation(game);
+    return;
+  }
+
+  if (e.key === 'Enter' && game.pendingOperation) {
+    if (isTypingTarget(e.target) && e.target !== game.els.opNumberValue) {
+      e.preventDefault();
+      return;
+    }
+    e.preventDefault();
+    confirmOperation(game);
+    return;
+  }
+
+  if (e.key === 'Enter' && isTypingTarget(e.target)) {
+    e.preventDefault();
+    return;
+  }
+
+  if (isTypingTarget(e.target)) return;
+  if (game.pendingOperation) return;
+
+  const operation = operationFromKey(e.key);
+  if (!operation) return;
+  e.preventDefault();
+  applyOperationBothSides(game, operation);
+}
+
 export function loadLevel(game, index) {
   game.currentLevelIndex = index;
   const lvl = game.levels[index];
@@ -119,11 +169,13 @@ function bindControls(game) {
 
   game.els.btnLevels.addEventListener('click', () => {
     renderLevelsPicker(game);
+    game.els.levelsModal.inert = false;
     game.els.levelsModal.classList.add('active');
   });
 
   game.els.btnCloseLevels.addEventListener('click', () => {
     game.els.levelsModal.classList.remove('active');
+    game.els.levelsModal.inert = true;
   });
 
   game.els.btnReset.addEventListener('click', () => {
@@ -143,26 +195,17 @@ function bindControls(game) {
   });
 
   game.els.btnNextLevel.addEventListener('click', () => {
-    game.els.winModal.classList.remove('active');
-
-    const isFinalLevel = game.completedLevels.size >= game.levels.length;
-
-    if (isFinalLevel) {
-      game.completedLevels.clear();
-      loadLevel(game, 0);
-    } else if (game.currentLevelIndex < game.levels.length - 1) {
-      loadLevel(game, game.currentLevelIndex + 1);
-    } else {
-      loadLevel(game, 0);
-    }
+    advanceFromWinModal(game);
   });
 
   game.els.btnCustomEq.addEventListener('click', () => {
+    game.els.customModal.inert = false;
     game.els.customModal.classList.add('active');
   });
 
   game.els.btnCloseCustom.addEventListener('click', () => {
     game.els.customModal.classList.remove('active');
+    game.els.customModal.inert = true;
   });
 
   game.els.btnStartCustom.addEventListener('click', () => {
@@ -188,6 +231,7 @@ function bindControls(game) {
     });
 
     game.els.customModal.classList.remove('active');
+    game.els.customModal.inert = true;
     loadLevel(game, game.levels.length - 1);
   });
 
@@ -200,31 +244,7 @@ function bindControls(game) {
   game.els.btnOpNumberOk.addEventListener('click', () => confirmOperation(game));
   game.els.btnOpNumberCancel.addEventListener('click', () => cancelOperation(game));
 
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && game.pendingOperation) {
-      e.preventDefault();
-      cancelOperation(game);
-      return;
-    }
-
-    if (e.key === 'Enter' && game.pendingOperation) {
-      if (isTypingTarget(e.target) && e.target !== game.els.opNumberValue) {
-        e.preventDefault();
-        return;
-      }
-      e.preventDefault();
-      confirmOperation(game);
-      return;
-    }
-
-    if (isTypingTarget(e.target)) return;
-    if (game.pendingOperation) return;
-
-    const operation = operationFromKey(e.key);
-    if (!operation) return;
-    e.preventDefault();
-    applyOperationBothSides(game, operation);
-  });
+  window.addEventListener('keydown', (e) => handleGameKeydown(game, e));
 }
 
 export function bootGame({ sound, particles }) {
