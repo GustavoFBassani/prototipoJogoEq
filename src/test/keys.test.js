@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget } from '../keys.js';
+import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget, isResetKey, isNextLevelKey, hasKeyModifier } from '../keys.js';
 
 describe('operationFromKey', () => {
   it('maps 1-4 to add, subtract, multiply, divide', () => {
@@ -53,5 +53,36 @@ describe('isTypingTarget', () => {
   it('is false for buttons and empty targets', () => {
     expect(isTypingTarget({ tagName: 'BUTTON', isContentEditable: false })).toBe(false);
     expect(isTypingTarget(null)).toBe(false);
+  });
+});
+
+describe('isResetKey', () => {
+  it('accepts r and R', () => {
+    expect(isResetKey('r')).toBe(true);
+    expect(isResetKey('R')).toBe(true);
+  });
+
+  it('rejects other keys', () => {
+    expect(isResetKey('Enter')).toBe(false);
+    expect(isResetKey('1')).toBe(false);
+  });
+});
+
+describe('isNextLevelKey', () => {
+  it('is only Enter', () => {
+    expect(isNextLevelKey('Enter')).toBe(true);
+    expect(isNextLevelKey('r')).toBe(false);
+  });
+});
+
+describe('hasKeyModifier', () => {
+  it('is true when ctrl, meta, or alt is held', () => {
+    expect(hasKeyModifier({ ctrlKey: true, metaKey: false, altKey: false })).toBe(true);
+    expect(hasKeyModifier({ ctrlKey: false, metaKey: true, altKey: false })).toBe(true);
+    expect(hasKeyModifier({ ctrlKey: false, metaKey: false, altKey: true })).toBe(true);
+  });
+
+  it('is false without modifiers', () => {
+    expect(hasKeyModifier({ ctrlKey: false, metaKey: false, altKey: false })).toBe(false);
   });
 });

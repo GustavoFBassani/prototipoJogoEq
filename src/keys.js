@@ -34,3 +34,15 @@ export function isTypingTarget(el) {
   const tag = el.tagName;
   return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
 }
+
+export function isResetKey(key) {
+  return key === 'r' || key === 'R';
+}
+
+export function isNextLevelKey(key) {
+  return key === 'Enter';
+}
+
+export function hasKeyModifier(e) {
+  return Boolean(e.ctrlKey || e.metaKey || e.altKey);
+}

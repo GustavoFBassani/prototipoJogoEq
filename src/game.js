@@ -2,7 +2,7 @@ import { LEVELS } from './levels.js';
 import { renderAll, renderLevelsPicker } from './render.js';
 import { applyOperationBothSides, applyNumberToBothSides, parseOpNumber } from './operations.js';
 import { checkWinCondition } from './win.js';
-import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget } from './keys.js';
+import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget, isResetKey, isNextLevelKey, hasKeyModifier } from './keys.js';
 
 function queryEls() {
   return {
@@ -101,6 +101,14 @@ function confirmOperation(game) {
   if (ok) cancelOperation(game);
 }
 
+function isBlockingModalOpen(game) {
+  return (
+    game.els.winModal.classList.contains('active') ||
+    game.els.levelsModal?.classList.contains('active') ||
+    game.els.customModal?.classList.contains('active')
+  );
+}
+
 export function advanceFromWinModal(game) {
   if (!game.els.winModal.classList.contains('active')) return false;
 
@@ -120,6 +128,12 @@ export function advanceFromWinModal(game) {
   return true;
 }
 
+export function resetCurrentLevel(game) {
+  if (isBlockingModalOpen(game)) return false;
+  game.loadLevel(game.currentLevelIndex);
+  return true;
+}
+
 export function handleGameKeydown(game, e) {
   if (e.key === 'Escape' && game.pendingOperation) {
     e.preventDefault();
@@ -127,7 +141,7 @@ export function handleGameKeydown(game, e) {
     return;
   }
 
-  if (e.key === 'Enter' && game.pendingOperation) {
+  if (isNextLevelKey(e.key) && game.pendingOperation) {
     if (isTypingTarget(e.target) && e.target !== game.els.opNumberValue) {
       e.preventDefault();
       return;
@@ -137,12 +151,24 @@ export function handleGameKeydown(game, e) {
     return;
   }
 
-  if (e.key === 'Enter' && isTypingTarget(e.target)) {
+  if (isNextLevelKey(e.key) && isTypingTarget(e.target)) {
     e.preventDefault();
     return;
   }
 
+  if (isNextLevelKey(e.key)) {
+    if (advanceFromWinModal(game)) e.preventDefault();
+    return;
+  }
+
   if (isTypingTarget(e.target)) return;
+
+  if (isResetKey(e.key) && !hasKeyModifier(e)) {
+    e.preventDefault();
+    resetCurrentLevel(game);
+    return;
+  }
+
   if (game.pendingOperation) return;
 
   const operation = operationFromKey(e.key);
@@ -194,7 +220,7 @@ function bindControls(game) {
   });
 
   game.els.btnReset.addEventListener('click', () => {
-    loadLevel(game, game.currentLevelIndex);
+    resetCurrentLevel(game);
   });
 
   game.els.btnHint.addEventListener('click', () => {

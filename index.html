@@ -110,7 +110,7 @@
     </section>
 
     <div class="footer-actions">
-      <button type="button" class="action-pill-btn" id="btn-reset">Reiniciar</button>
+      <button type="button" class="action-pill-btn" id="btn-reset" aria-keyshortcuts="R">Reiniciar <kbd>R</kbd></button>
       <button type="button" class="action-pill-btn" id="btn-hint" aria-pressed="false">Dica</button>
       <button type="button" class="action-pill-btn" id="btn-custom-eq">Equação livre</button>
     </div>
@@ -124,7 +124,10 @@
       <h2 class="win-title">Resolvida</h2>
       <div class="win-equation" id="win-sol-text">x = 3</div>
       <p class="win-desc" id="win-message">O x ficou sozinho.</p>
-      <button type="button" class="btn-next-level" id="btn-next-level">Próxima</button>
+      <button type="button" class="btn-next-level" id="btn-next-level" aria-keyshortcuts="Enter">
+        <span id="btn-next-level-label">Próxima</span>
+        <kbd>Enter</kbd>
+      </button>
     </div>
   </div>
 

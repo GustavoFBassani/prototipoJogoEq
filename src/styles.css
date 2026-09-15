@@ -465,7 +465,9 @@ main {
   gap: 4px;
 }
 
-.op-btn kbd {
+.op-btn kbd,
+.action-pill-btn kbd,
+.btn-next-level kbd {
   font-family: 'Fira Code', monospace;
   font-size: 11px;
   font-weight: 500;
@@ -725,6 +727,10 @@ main {
   cursor: pointer;
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .btn-next-level:hover {

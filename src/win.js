@@ -20,13 +20,13 @@ export function triggerVictory(game, constTerm) {
     document.querySelector('.win-trophy').textContent = '👑';
     document.querySelector('.win-title').textContent = 'Todas as fases';
     document.getElementById('win-message').textContent = 'O x ficou sozinho em todas.';
-    document.getElementById('btn-next-level').textContent = 'De novo';
+    document.getElementById('btn-next-level-label').textContent = 'De novo';
   } else {
     game.particles.createConfettiBurst(window.innerWidth / 2, window.innerHeight * 0.4);
     document.querySelector('.win-trophy').textContent = '🏆';
     document.querySelector('.win-title').textContent = 'Resolvida';
     document.getElementById('win-message').textContent = 'O x ficou sozinho.';
-    document.getElementById('btn-next-level').textContent = 'Próxima';
+    document.getElementById('btn-next-level-label').textContent = 'Próxima';
   }
 
   game.els.winSolText.textContent = formatSolution(constTerm);

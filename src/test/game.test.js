@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { advanceFromWinModal, handleGameKeydown } from '../game.js';
+import { advanceFromWinModal, handleGameKeydown, resetCurrentLevel } from '../game.js';
 
 function mockModal(active) {
   const classes = new Set(active ? ['active'] : []);
@@ -13,17 +13,31 @@ function mockModal(active) {
   };
 }
 
-function mockGame({ modalActive, pendingOperation = null } = {}) {
+function mockGame({ modalActive = false, pendingOperation = null, currentLevelIndex = 0 } = {}) {
   return {
-    currentLevelIndex: 0,
+    currentLevelIndex,
     levels: [{}, {}],
     completedLevels: new Set(),
     pendingOperation,
     loadLevel: vi.fn(),
     els: {
       winModal: mockModal(modalActive),
+      levelsModal: mockModal(false),
+      customModal: mockModal(false),
       opNumberValue: { id: 'op-number-value', tagName: 'INPUT', isContentEditable: false },
     },
+  };
+}
+
+function keyEvent(key, target, extras = {}) {
+  return {
+    key,
+    target,
+    preventDefault: vi.fn(),
+    ctrlKey: false,
+    metaKey: false,
+    altKey: false,
+    ...extras,
   };
 }
 
@@ -42,16 +56,72 @@ describe('advanceFromWinModal', () => {
   });
 });
 
+describe('resetCurrentLevel', () => {
+  it('reloads the current level when no modal is open', () => {
+    const game = mockGame({ currentLevelIndex: 1 });
+    expect(resetCurrentLevel(game)).toBe(true);
+    expect(game.loadLevel).toHaveBeenCalledWith(1);
+  });
+
+  it('does not reset while the win modal is open', () => {
+    const game = mockGame({ modalActive: true, currentLevelIndex: 1 });
+    expect(resetCurrentLevel(game)).toBe(false);
+    expect(game.loadLevel).not.toHaveBeenCalled();
+  });
+});
+
 describe('handleGameKeydown', () => {
-  it('does not load the next level on Enter after the win modal opens', () => {
+  const board = { tagName: 'BODY', isContentEditable: false };
+
+  it('does not load the next level on Enter while typing in an input', () => {
     const game = mockGame({ modalActive: true });
-    const event = {
-      key: 'Enter',
-      target: game.els.opNumberValue,
-      preventDefault: vi.fn(),
-    };
+    const event = keyEvent('Enter', game.els.opNumberValue);
     handleGameKeydown(game, event);
     expect(event.preventDefault).toHaveBeenCalled();
+    expect(game.loadLevel).not.toHaveBeenCalled();
+  });
+
+  it('loads the next level on Enter when the win modal is open', () => {
+    const game = mockGame({ modalActive: true });
+    const event = keyEvent('Enter', board);
+    handleGameKeydown(game, event);
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(game.loadLevel).toHaveBeenCalledWith(1);
+  });
+
+  it('does not advance on Enter when the win modal is closed', () => {
+    const game = mockGame({ modalActive: false });
+    const event = keyEvent('Enter', board);
+    handleGameKeydown(game, event);
+    expect(game.loadLevel).not.toHaveBeenCalled();
+  });
+
+  it('reloads the current level on R', () => {
+    const game = mockGame({ currentLevelIndex: 1 });
+    const event = keyEvent('R', board);
+    handleGameKeydown(game, event);
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(game.loadLevel).toHaveBeenCalledWith(1);
+  });
+
+  it('reloads the current level on r', () => {
+    const game = mockGame({ currentLevelIndex: 1 });
+    const event = keyEvent('r', board);
+    handleGameKeydown(game, event);
+    expect(game.loadLevel).toHaveBeenCalledWith(1);
+  });
+
+  it('does not reset on R while typing', () => {
+    const game = mockGame({ currentLevelIndex: 1 });
+    const event = keyEvent('r', game.els.opNumberValue);
+    handleGameKeydown(game, event);
+    expect(game.loadLevel).not.toHaveBeenCalled();
+  });
+
+  it('does not reset on Ctrl+R', () => {
+    const game = mockGame({ currentLevelIndex: 1 });
+    const event = keyEvent('r', board, { ctrlKey: true });
+    handleGameKeydown(game, event);
     expect(game.loadLevel).not.toHaveBeenCalled();
   });
 });
