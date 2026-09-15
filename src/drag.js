@@ -1,6 +1,15 @@
-import { areOpposites, getTokenColors } from './algebra.js';
+import { getTokenColors, resolveDrop } from './algebra.js';
 
 let activeDrag = null;
+
+function itemsOnSide(game, side) {
+  return side === 'lhs' ? game.lhsItems : game.rhsItems;
+}
+
+function setItemsOnSide(game, side, items) {
+  if (side === 'lhs') game.lhsItems = items;
+  else game.rhsItems = items;
+}
 
 export function setupDrag(element, item, sideName, game) {
   element.addEventListener('pointerdown', (e) => {
@@ -35,8 +44,11 @@ export function setupDrag(element, item, sideName, game) {
     const targetSideDropzone =
       activeDrag.side === 'lhs' ? game.els.dropzoneLhs : game.els.dropzoneRhs;
     const tokens = targetSideDropzone.querySelectorAll('.game-token:not(.dragging)');
+    const sideItems = itemsOnSide(game, activeDrag.side);
 
     let foundTarget = null;
+    let foundAction = null;
+
     tokens.forEach((otherEl) => {
       const oRect = otherEl.getBoundingClientRect();
       const isOver =
@@ -45,17 +57,18 @@ export function setupDrag(element, item, sideName, game) {
         e.clientY >= oRect.top &&
         e.clientY <= oRect.bottom;
 
-      if (isOver && areOpposites(activeDrag.item.type, otherEl.dataset.type)) {
+      if (!isOver) return;
+      const targetItem = sideItems.find((i) => i.id === parseInt(otherEl.dataset.id, 10));
+      const drop = resolveDrop(activeDrag.item, targetItem);
+      if (drop) {
         foundTarget = otherEl;
+        foundAction = drop.action;
       }
     });
 
     tokens.forEach((otherEl) => {
-      if (otherEl === foundTarget) {
-        otherEl.classList.add('hover-target');
-      } else {
-        otherEl.classList.remove('hover-target');
-      }
+      otherEl.classList.toggle('hover-target', otherEl === foundTarget && foundAction !== 'fuse');
+      otherEl.classList.toggle('hover-fuse', otherEl === foundTarget && foundAction === 'fuse');
     });
 
     activeDrag.targetToken = foundTarget;
@@ -73,34 +86,54 @@ export function setupDrag(element, item, sideName, game) {
     element.classList.remove('dragging');
     element.style.transform = '';
 
+    const targetSideDropzone =
+      activeDrag.side === 'lhs' ? game.els.dropzoneLhs : game.els.dropzoneRhs;
+
     if (activeDrag.targetToken) {
       const targetId = parseInt(activeDrag.targetToken.dataset.id, 10);
       const sourceId = activeDrag.item.id;
-      const targetType = activeDrag.targetToken.dataset.type;
+      const sideItems = itemsOnSide(game, activeDrag.side);
+      const targetItem = sideItems.find((i) => i.id === targetId);
+      const drop = resolveDrop(activeDrag.item, targetItem);
 
-      const rect = activeDrag.targetToken.getBoundingClientRect();
-      const burstX = rect.left + rect.width / 2;
-      const burstY = rect.top + rect.height / 2;
+      if (drop && targetItem) {
+        const rect = activeDrag.targetToken.getBoundingClientRect();
+        const burstX = rect.left + rect.width / 2;
+        const burstY = rect.top + rect.height / 2;
+        const colorA = getTokenColors(activeDrag.item).glow;
+        const colorB = getTokenColors(targetItem).glow;
 
-      const colorA = getTokenColors(activeDrag.item.type).glow;
-      const colorB = getTokenColors(targetType).glow;
-      game.particles.createDustExplosion(burstX, burstY, colorA, colorB);
-      game.sound.playDustAnnihilation();
+        if (drop.action === 'annihilate') {
+          game.particles.createDustExplosion(burstX, burstY, colorA, colorB);
+          game.sound.playDustAnnihilation();
+          setItemsOnSide(
+            game,
+            activeDrag.side,
+            sideItems.filter((i) => i.id !== sourceId && i.id !== targetId)
+          );
+        } else {
+          if (drop.action === 'fuse') {
+            game.particles.createDustExplosion(burstX, burstY, colorA, '#ffffff');
+            game.sound.playAddOperation();
+          } else {
+            game.particles.createDustExplosion(burstX, burstY, colorA, colorB);
+            game.sound.playDustAnnihilation();
+          }
+          targetItem.num = drop.num;
+          targetItem.den = drop.den;
+          setItemsOnSide(
+            game,
+            activeDrag.side,
+            sideItems.filter((i) => i.id !== sourceId)
+          );
+        }
 
-      if (activeDrag.side === 'lhs') {
-        game.lhsItems = game.lhsItems.filter((i) => i.id !== sourceId && i.id !== targetId);
-      } else {
-        game.rhsItems = game.rhsItems.filter((i) => i.id !== sourceId && i.id !== targetId);
+        game.renderAll();
       }
-
-      game.renderAll();
     } else {
-      const targetSideDropzone =
-        activeDrag.side === 'lhs' ? game.els.dropzoneLhs : game.els.dropzoneRhs;
       targetSideDropzone.querySelectorAll('.game-token').forEach((t) => {
-        t.classList.remove('hover-target');
+        t.classList.remove('hover-target', 'hover-fuse');
       });
-      element.style.transform = '';
     }
 
     activeDrag = null;

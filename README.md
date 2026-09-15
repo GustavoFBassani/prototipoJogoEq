@@ -1,6 +1,6 @@
 # EquaLab
 
-Protótipo de jogo para o 7º ano praticar equação do 1º grau: a mesma operação nos dois lados, cancelar opostos no mesmo lado, até o `x` ficar sozinho.
+Protótipo de jogo para o 7º ano praticar equação do 1º grau: a mesma operação nos dois lados, fundir iguais e cancelar opostos no mesmo prato, até o `x` ficar sozinho.
 
 ## Como rodar
 
@@ -17,11 +17,11 @@ Testes: `npm test`. Build: `npm run build`.
 |---------|--------|
 | `main.js` | Sobe som, partículas e o jogo |
 | `game.js` | Nível atual, controles, teclado, painel do número |
-| `operations.js` | Aplica `+1` `-1` `+x` `-x` nos dois lados; `×`/`÷` pedem um inteiro > 1 |
-| `algebra.js` | Conta tokens, formata a equação, detecta `x` isolado |
-| `levels.js` | 11 fases prontas |
+| `operations.js` | `+N` `−N` `+Nx` `−Nx` `×` `÷` nos dois lados |
+| `algebra.js` | Racionais, fusão, fórmula, vitória |
+| `levels.js` | 14 fases prontas |
 | `render.js` | Tokens e fórmula |
-| `drag.js` | Arrastar um token no oposto do mesmo lado |
+| `drag.js` | Fundir ou cancelar no mesmo lado |
 | `keys.js` | Mapa `1`–`6` → operações |
 | `win.js` | Tela de acerto |
 | `particles.js` | Poeira / confete |
@@ -31,11 +31,11 @@ O som fica em `packages/sound-engine`.
 
 ## Como se joga
 
-Cada botão de operação atinge os dois lados. Arraste `+1` em `-1`, ou `+x` em `-x`, no **mesmo** lado para os dois sumirem. A fase acaba quando um lado é só `x` e o outro é um número.
+Cada botão pede um número N (painel inline) e aplica nos dois lados. Arraste termos do mesmo tipo no **mesmo** prato: iguais fundem (`+2` em `+3` vira `+5`), opostos cancelam (`+5x` em `−2x` vira `+3x`). A fase acaba quando cada prato tem um container só: um é `+x` e o outro é um número, inclusive fração.
 
-`×` e `÷` não usam modal. O painel de operações vira um campo: *Qual número você quer usar na operação?* Inteiro maior que 1. Enter confirma, Esc cancela. Dividir só vale se as quantidades de cada tipo, nos dois lados, forem divisíveis por esse número.
+`×` e `÷` aceitam negativo (`× −1` inverte o sinal). Zero é recusado. `4x = −3` com `÷ 4` vira `x = −3/4`.
 
-A dica da fase começa escondida. O botão **Dica da Jogada** liga e desliga.
+A dica da fase começa escondida. O botão **Dica** liga e desliga.
 
 ## Atalhos
 
@@ -43,11 +43,9 @@ Valem fora de `input` / `textarea`. Com o campo de número aberto, `1`–`6` dig
 
 | Tecla | Operação |
 |-------|----------|
-| `1` | +1 |
-| `2` | −1 |
-| `3` | +x |
-| `4` | −x |
+| `1` | + N |
+| `2` | − N |
+| `3` | + Nx |
+| `4` | − Nx |
 | `5` | × |
 | `6` | ÷ |
-
-As teclas também estão nos botões.

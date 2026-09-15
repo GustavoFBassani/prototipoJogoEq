@@ -1,17 +1,63 @@
 import { describe, it, expect } from 'vitest';
-import { parseOpNumber } from './operations.js';
+import { parseOpNumber, applyNumberToBothSides } from './operations.js';
+
+function fakeGame(lhs, rhs) {
+  const game = {
+    lhsItems: lhs.map((item, i) => ({ id: i + 1, ...item })),
+    rhsItems: rhs.map((item, i) => ({ id: 100 + i, ...item })),
+    itemIdCounter: 200,
+    sound: { playAddOperation() {} },
+    particles: { createDustExplosion() {} },
+    renderAll() {},
+    showOpNote() {},
+  };
+  return game;
+}
 
 describe('parseOpNumber', () => {
-  it('accepts integers greater than 1', () => {
-    expect(parseOpNumber('2')).toBe(2);
-    expect(parseOpNumber('10')).toBe(10);
+  it('accepts any non-zero number, including 1 and negatives', () => {
+    expect(parseOpNumber('1')).toBe(1);
+    expect(parseOpNumber('4')).toBe(4);
+    expect(parseOpNumber('-1')).toBe(-1);
+    expect(parseOpNumber('-2')).toBe(-2);
   });
 
-  it('rejects 1, zero, negatives, and junk', () => {
-    expect(parseOpNumber('1')).toBeNull();
+  it('rejects zero and junk', () => {
     expect(parseOpNumber('0')).toBeNull();
-    expect(parseOpNumber('-2')).toBeNull();
     expect(parseOpNumber('abc')).toBeNull();
     expect(parseOpNumber('')).toBeNull();
+  });
+});
+
+describe('applyNumberToBothSides', () => {
+  it('divides 4x = -3 into x = -3/4', () => {
+    const game = fakeGame(
+      [{ kind: 'variable', num: 4, den: 1 }],
+      [{ kind: 'constant', num: -3, den: 1 }]
+    );
+    expect(applyNumberToBothSides(game, '/N', 4)).toBe(true);
+    expect(game.lhsItems[0]).toMatchObject({ kind: 'variable', num: 1, den: 1 });
+    expect(game.rhsItems[0]).toMatchObject({ kind: 'constant', num: -3, den: 4 });
+  });
+
+  it('multiplies -x = 7 by -1 into x = -7', () => {
+    const game = fakeGame(
+      [{ kind: 'variable', num: -1, den: 1 }],
+      [{ kind: 'constant', num: 7, den: 1 }]
+    );
+    expect(applyNumberToBothSides(game, '*N', -1)).toBe(true);
+    expect(game.lhsItems[0]).toMatchObject({ kind: 'variable', num: 1, den: 1 });
+    expect(game.rhsItems[0]).toMatchObject({ kind: 'constant', num: -7, den: 1 });
+  });
+
+  it('adds +3 to both sides as one constant each', () => {
+    const game = fakeGame(
+      [{ kind: 'variable', num: 1, den: 1 }],
+      [{ kind: 'constant', num: 2, den: 1 }]
+    );
+    expect(applyNumberToBothSides(game, '+N', 3)).toBe(true);
+    expect(game.lhsItems).toHaveLength(2);
+    expect(game.lhsItems[1]).toMatchObject({ kind: 'constant', num: 3, den: 1 });
+    expect(game.rhsItems[1]).toMatchObject({ kind: 'constant', num: 3, den: 1 });
   });
 });

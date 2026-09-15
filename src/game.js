@@ -19,8 +19,10 @@ function queryEls() {
     customModal: document.getElementById('custom-modal'),
     opsPanel: document.querySelector('.operations-panel'),
     opNumberPanel: document.getElementById('op-number-panel'),
+    opNumberPrompt: document.getElementById('op-number-prompt'),
     opNumberValue: document.getElementById('op-number-value'),
     opNumberNote: document.getElementById('op-number-note'),
+    customEqNote: document.getElementById('custom-eq-note'),
     btnOpNumberOk: document.getElementById('btn-op-number-ok'),
     btnOpNumberCancel: document.getElementById('btn-op-number-cancel'),
     btnSound: document.getElementById('btn-sound'),
@@ -46,11 +48,22 @@ function showOpNote(game, text) {
   game.els.opNumberNote.textContent = text || '';
 }
 
+const OP_NUMBER_UI = {
+  '+N': { prompt: 'Somar quanto nos dois lados?', value: '1' },
+  '-N': { prompt: 'Subtrair quanto dos dois lados?', value: '1' },
+  '+Nx': { prompt: 'Somar quantos x nos dois lados?', value: '1' },
+  '-Nx': { prompt: 'Subtrair quantos x dos dois lados?', value: '1' },
+  '*N': { prompt: 'Multiplicar os dois lados por quanto?', value: '2' },
+  '/N': { prompt: 'Dividir os dois lados por quanto?', value: '2' },
+};
+
 function beginNumberOp(game, opType) {
+  const ui = OP_NUMBER_UI[opType] ?? { prompt: 'Qual número?', value: '1' };
   game.pendingNumberOp = opType;
   game.els.opsPanel.classList.add('is-asking-number');
   game.els.opNumberPanel.hidden = false;
-  game.els.opNumberValue.value = '2';
+  game.els.opNumberPrompt.textContent = ui.prompt;
+  game.els.opNumberValue.value = ui.value;
   showOpNote(game, '');
   game.els.opNumberValue.focus();
   game.els.opNumberValue.select();
@@ -66,7 +79,13 @@ function cancelNumberOp(game) {
 function confirmNumberOp(game) {
   const n = parseOpNumber(game.els.opNumberValue.value);
   if (n == null) {
-    showOpNote(game, 'Escolhe um número maior que 1.');
+    const zero = Number(game.els.opNumberValue.value) === 0;
+    showOpNote(
+      game,
+      zero
+        ? 'Zero desequilibra a balança. Escolhe outro número.'
+        : 'Escolhe um número diferente de zero.'
+    );
     game.els.opNumberValue.focus();
     return;
   }
@@ -83,8 +102,18 @@ export function loadLevel(game, index) {
   setHintVisible(game, false);
   cancelNumberOp(game);
 
-  game.lhsItems = lvl.lhs.map((item) => ({ id: game.itemIdCounter++, type: item.type }));
-  game.rhsItems = lvl.rhs.map((item) => ({ id: game.itemIdCounter++, type: item.type }));
+  game.lhsItems = lvl.lhs.map((item) => ({
+    id: game.itemIdCounter++,
+    kind: item.kind,
+    num: item.num,
+    den: item.den,
+  }));
+  game.rhsItems = lvl.rhs.map((item) => ({
+    id: game.itemIdCounter++,
+    kind: item.kind,
+    num: item.num,
+    den: item.den,
+  }));
 
   game.renderAll();
 }
@@ -136,6 +165,7 @@ function bindControls(game) {
   });
 
   game.els.btnCustomEq.addEventListener('click', () => {
+    if (game.els.customEqNote) game.els.customEqNote.hidden = true;
     game.els.customModal.classList.add('active');
   });
 
@@ -149,18 +179,28 @@ function bindControls(game) {
     const rx = parseInt(document.getElementById('cust-rx').value, 10) || 0;
     const rc = parseInt(document.getElementById('cust-rc').value, 10) || 0;
 
+    if (game.els.customEqNote) game.els.customEqNote.hidden = true;
+
+    if (lx === rx) {
+      if (game.els.customEqNote) {
+        game.els.customEqNote.hidden = false;
+        game.els.customEqNote.textContent =
+          'Os coeficientes de x não podem ser iguais. Isso vira 0x.';
+      }
+      return;
+    }
+
     const customLhs = [];
     const customRhs = [];
-
-    for (let i = 0; i < Math.abs(lx); i++) customLhs.push({ type: lx > 0 ? '+x' : '-x' });
-    for (let i = 0; i < Math.abs(lc); i++) customLhs.push({ type: lc > 0 ? '+1' : '-1' });
-    for (let i = 0; i < Math.abs(rx); i++) customRhs.push({ type: rx > 0 ? '+x' : '-x' });
-    for (let i = 0; i < Math.abs(rc); i++) customRhs.push({ type: rc > 0 ? '+1' : '-1' });
+    if (lx !== 0) customLhs.push({ kind: 'variable', num: lx, den: 1 });
+    if (lc !== 0) customLhs.push({ kind: 'constant', num: lc, den: 1 });
+    if (rx !== 0) customRhs.push({ kind: 'variable', num: rx, den: 1 });
+    if (rc !== 0) customRhs.push({ kind: 'constant', num: rc, den: 1 });
 
     game.levels.push({
       id: game.levels.length + 1,
       title: 'Laboratório Livre Personalizado',
-      hint: 'Isole a variável x aplicando operações equivalentes em ambos os lados.',
+      hint: 'Isole o x com a mesma operação nos dois lados e fundindo termos iguais.',
       lhs: customLhs,
       rhs: customRhs,
     });
@@ -207,7 +247,11 @@ export function bootGame({ sound, particles }) {
   const game = {
     sound,
     particles,
-    levels: LEVELS,
+    levels: LEVELS.map((lvl) => ({
+      ...lvl,
+      lhs: lvl.lhs.map((item) => ({ ...item })),
+      rhs: lvl.rhs.map((item) => ({ ...item })),
+    })),
     currentLevelIndex: 0,
     lhsItems: [],
     rhsItems: [],

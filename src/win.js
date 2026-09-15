@@ -1,22 +1,16 @@
-import { countTokens, isIsolatedX } from './algebra.js';
+import { winningConstant, formatSolution } from './algebra.js';
 
 export function checkWinCondition(game) {
-  const left = countTokens(game.lhsItems);
-  const right = countTokens(game.rhsItems);
+  const constant = winningConstant(game.lhsItems, game.rhsItems);
+  if (!constant) return;
 
-  const leftIsolated = isIsolatedX(left, right);
-  const rightIsolated = isIsolatedX(right, left);
-
-  if (leftIsolated || rightIsolated) {
-    const finalVal = leftIsolated ? right.pos1 - right.neg1 : left.pos1 - left.neg1;
-    game.completedLevels.add(game.currentLevelIndex);
-    setTimeout(() => {
-      triggerVictory(game, finalVal);
-    }, 300);
-  }
+  game.completedLevels.add(game.currentLevelIndex);
+  setTimeout(() => {
+    triggerVictory(game, constant);
+  }, 300);
 }
 
-export function triggerVictory(game, value) {
+export function triggerVictory(game, constTerm) {
   game.sound.playLevelWin();
 
   const isFinalLevel = game.completedLevels.size >= game.levels.length;
@@ -35,6 +29,6 @@ export function triggerVictory(game, value) {
     document.getElementById('btn-next-level').textContent = 'Próxima';
   }
 
-  game.els.winSolText.textContent = `x = ${value}`;
+  game.els.winSolText.textContent = formatSolution(constTerm);
   game.els.winModal.classList.add('active');
 }

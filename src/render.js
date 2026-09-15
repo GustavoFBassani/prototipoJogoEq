@@ -1,20 +1,5 @@
-import { formatAlgebraicSide } from './algebra.js';
+import { formatAlgebraicSide, getTokenClasses, renderTokenContent } from './algebra.js';
 import { setupDrag } from './drag.js';
-
-function tokenClass(type) {
-  switch (type) {
-    case '+x':
-      return 'token-pos-x';
-    case '-x':
-      return 'token-neg-x';
-    case '+1':
-      return 'token-pos-1';
-    case '-1':
-      return 'token-neg-1';
-    default:
-      return '';
-  }
-}
 
 function renderContainer(items, containerEl, sideName, game) {
   containerEl.innerHTML = '';
@@ -27,13 +12,13 @@ function renderContainer(items, containerEl, sideName, game) {
 
   items.forEach((item) => {
     const el = document.createElement('div');
-    el.className = `game-token ${tokenClass(item.type)}`;
+    el.className = `game-token ${getTokenClasses(item)}`;
     el.dataset.id = item.id;
-    el.dataset.type = item.type;
+    el.dataset.kind = item.kind;
     el.dataset.side = sideName;
-    el.setAttribute('aria-label', item.type);
+    el.setAttribute('aria-label', formatAlgebraicSide([item]));
 
-    el.innerHTML = `<span>${item.type}</span>`;
+    el.innerHTML = renderTokenContent(item);
 
     setupDrag(el, item, sideName, game);
     containerEl.appendChild(el);

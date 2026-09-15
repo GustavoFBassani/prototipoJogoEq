@@ -3,10 +3,10 @@ import { opFromKey, isTypingTarget } from './keys.js';
 
 describe('opFromKey', () => {
   it('maps 1-6 to the six operations in button order', () => {
-    expect(opFromKey('1')).toBe('+1');
-    expect(opFromKey('2')).toBe('-1');
-    expect(opFromKey('3')).toBe('+x');
-    expect(opFromKey('4')).toBe('-x');
+    expect(opFromKey('1')).toBe('+N');
+    expect(opFromKey('2')).toBe('-N');
+    expect(opFromKey('3')).toBe('+Nx');
+    expect(opFromKey('4')).toBe('-Nx');
     expect(opFromKey('5')).toBe('*N');
     expect(opFromKey('6')).toBe('/N');
   });

@@ -1,8 +1,8 @@
 export const OP_KEYS = [
-  { key: '1', op: '+1' },
-  { key: '2', op: '-1' },
-  { key: '3', op: '+x' },
-  { key: '4', op: '-x' },
+  { key: '1', op: '+N' },
+  { key: '2', op: '-N' },
+  { key: '3', op: '+Nx' },
+  { key: '4', op: '-Nx' },
   { key: '5', op: '*N' },
   { key: '6', op: '/N' },
 ];

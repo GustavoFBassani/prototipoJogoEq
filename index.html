@@ -21,7 +21,7 @@
     </div>
     <div class="header-controls">
       <div class="level-badge" title="Nível">
-        <span id="current-level-label">1/11</span>
+        <span id="current-level-label">1/14</span>
       </div>
       <button class="icon-btn" id="btn-levels" title="Escolher Fase">🗺️</button>
       <button class="icon-btn" id="btn-sound" title="Alternar Som">🔊</button>
@@ -57,20 +57,20 @@
 
     <section class="operations-panel">
       <div class="ops-buttons-grid">
-        <button type="button" class="op-btn op-btn-pos-one" data-op="+1" title="Somar 1 nos dois lados">
-          <span>+ 1</span>
+        <button type="button" class="op-btn op-btn-pos-one" data-op="+N" title="Somar N nos dois lados">
+          <span>+ N</span>
           <kbd>1</kbd>
         </button>
-        <button type="button" class="op-btn op-btn-neg-one" data-op="-1" title="Subtrair 1 nos dois lados">
-          <span>- 1</span>
+        <button type="button" class="op-btn op-btn-neg-one" data-op="-N" title="Subtrair N dos dois lados">
+          <span>− N</span>
           <kbd>2</kbd>
         </button>
-        <button type="button" class="op-btn op-btn-pos-x" data-op="+x" title="Somar x nos dois lados">
-          <span>+ x</span>
+        <button type="button" class="op-btn op-btn-pos-x" data-op="+Nx" title="Somar Nx nos dois lados">
+          <span>+ Nx</span>
           <kbd>3</kbd>
         </button>
-        <button type="button" class="op-btn op-btn-neg-x" data-op="-x" title="Subtrair x nos dois lados">
-          <span>- x</span>
+        <button type="button" class="op-btn op-btn-neg-x" data-op="-Nx" title="Subtrair Nx dos dois lados">
+          <span>− Nx</span>
           <kbd>4</kbd>
         </button>
         <button type="button" class="op-btn op-btn-mult" data-op="*N" title="Multiplicar os dois lados">
@@ -83,8 +83,8 @@
         </button>
       </div>
       <div class="op-number-panel" id="op-number-panel" hidden>
-        <p id="op-number-prompt">× ou ÷ por quanto?</p>
-        <input type="number" id="op-number-value" value="2" min="2">
+        <p id="op-number-prompt">Qual número?</p>
+        <input type="number" id="op-number-value" value="1" step="any">
         <button type="button" class="btn-next-level" id="btn-op-number-ok">Ok</button>
         <button type="button" class="action-pill-btn" id="btn-op-number-cancel">Cancelar</button>
         <p class="op-number-note" id="op-number-note" hidden></p>
@@ -127,6 +127,7 @@
         <input type="number" id="cust-rx" value="1" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #c084fc; background: #0f172a; color: #fff; text-align: center;"> x +
         <input type="number" id="cust-rc" value="5" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #c084fc; background: #0f172a; color: #fff; text-align: center;">
       </div>
+      <p class="op-number-note" id="custom-eq-note" hidden></p>
       <button class="btn-next-level" style="background: linear-gradient(135deg, #a855f7, #7c3aed); border-color: #d8b4fe;" id="btn-start-custom">Jogar</button>
       <button class="action-pill-btn" style="margin: 12px auto 0; width: 100%; justify-content: center;" id="btn-close-custom">Cancelar</button>
     </div>
