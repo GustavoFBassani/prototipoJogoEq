@@ -94,11 +94,11 @@ export function getTokenColors(item) {
   if (item.kind === 'variable') {
     return item.num > 0
       ? { main: '#0284c7', glow: '#38bdf8' }
-      : { main: '#ea580c', glow: '#fb923c' };
+      : { main: '#e11d48', glow: '#f87171' };
   }
   return item.num > 0
     ? { main: '#16a34a', glow: '#4ade80' }
-    : { main: '#9333ea', glow: '#c084fc' };
+    : { main: '#d97706', glow: '#fbbf24' };
 }
 
 export function getTokenClasses(item) {

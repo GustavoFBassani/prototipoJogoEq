@@ -6,28 +6,30 @@
   <title>EquaLab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@400;600;800;900&family=Fira+Code:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=STIX+Two+Text:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <canvas id="particle-canvas"></canvas>
 
-  <div class="app">
   <header>
-    <div class="logo-area">
-      <span class="logo-icon">⚖️</span>
-      <div>
-        <h1 class="logo-title">EquaLab</h1>
+    <div class="header-inner">
+      <div class="logo-area">
+        <span class="logo-icon">⚖️</span>
+        <div>
+          <h1 class="logo-title">EquaLab</h1>
+        </div>
       </div>
-    </div>
-    <div class="header-controls">
-      <div class="level-badge" title="Nível">
-        <span id="current-level-label">1/14</span>
+      <div class="header-controls">
+        <div class="level-badge" title="Nível">
+          <span id="current-level-label">1/14</span>
+        </div>
+        <button type="button" class="icon-btn" id="btn-levels" title="Escolher Fase">🗺️</button>
+        <button type="button" class="icon-btn" id="btn-sound" title="Alternar Som">🔊</button>
       </div>
-      <button type="button" class="icon-btn" id="btn-levels" title="Escolher Fase">🗺️</button>
-      <button type="button" class="icon-btn" id="btn-sound" title="Alternar Som">🔊</button>
     </div>
   </header>
 
+  <div class="app">
   <main>
     <section class="playfield">
       <section class="board">
@@ -55,52 +57,44 @@
         </div>
       </section>
 
+    <div class="ops-header-area">
+      <h3 class="ops-title">Escolha a operação desejada</h3>
+      <div class="ops-speech-bubble" id="ops-speech-bubble" aria-live="polite">
+        <span class="speech-bubble-text" id="ops-speech-bubble-text"></span>
+      </div>
+    </div>
+
     <section class="operations-panel">
       <div class="ops-buttons-grid">
-        <button type="button" class="op-btn op-btn-pos-one" data-op="add" title="Somar nos dois lados">
-          <span>+</span>
-          <span class="op-btn-keys">
-            <kbd>1</kbd>
-            <kbd>+</kbd>
-          </span>
+        <button type="button" class="op-btn op-btn-pos-one" data-op="add" data-hint="Soma o mesmo valor aos dois lados da equação" title="Somar nos dois lados" aria-label="Somar">
+          <span class="op-symbol">+</span>
         </button>
-        <button type="button" class="op-btn op-btn-neg-one" data-op="subtract" title="Subtrair nos dois lados">
-          <span>-</span>
-          <span class="op-btn-keys">
-            <kbd>2</kbd>
-            <kbd>-</kbd>
-          </span>
+        <button type="button" class="op-btn op-btn-neg-one" data-op="subtract" data-hint="Subtrai o mesmo valor dos dois lados da equação" title="Subtrair nos dois lados" aria-label="Subtrair">
+          <span class="op-symbol">−</span>
         </button>
-        <button type="button" class="op-btn op-btn-mult" data-op="multiply" title="Multiplicar os dois lados">
-          <span>×</span>
-          <span class="op-btn-keys">
-            <kbd>3</kbd>
-            <kbd>*</kbd>
-          </span>
+        <button type="button" class="op-btn op-btn-mult" data-op="multiply" data-hint="Multiplica os dois lados da equação para eliminar frações" title="Multiplicar os dois lados" aria-label="Multiplicar">
+          <span class="op-symbol">×</span>
         </button>
-        <button type="button" class="op-btn op-btn-div" data-op="divide" title="Dividir os dois lados">
-          <span>÷</span>
-          <span class="op-btn-keys">
-            <kbd>4</kbd>
-            <kbd>/</kbd>
-          </span>
+        <button type="button" class="op-btn op-btn-div" data-op="divide" data-hint="Divide os dois lados da equação para isolar o x" title="Dividir os dois lados" aria-label="Dividir">
+          <span class="op-symbol">÷</span>
         </button>
       </div>
       <div class="op-number-panel" id="op-number-panel" hidden>
         <fieldset class="operand-selector" id="operand-selector">
           <legend id="operand-legend">Número ou x?</legend>
-          <label>
+          <label class="operand-label-number">
             <input type="radio" name="operand" id="operand-number" value="number" checked>
-            número
+            <span>número</span>
           </label>
-          <label>
+          <label class="operand-label-unknown">
             <input type="radio" name="operand" id="operand-unknown" value="unknown">
-            x
+            <span>x</span>
           </label>
         </fieldset>
         <button type="button" class="icon-btn op-back-btn" id="btn-op-number-cancel" title="Voltar às operações" aria-label="Voltar às operações">
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="13" y1="8" x2="3" y2="8"/>
+            <polyline points="7 4 3 8 7 12"/>
           </svg>
         </button>
         <input type="number" id="op-number-value" value="1" step="any">
@@ -110,9 +104,30 @@
     </section>
 
     <div class="footer-actions">
-      <button type="button" class="action-pill-btn" id="btn-reset" aria-keyshortcuts="R">Reiniciar <kbd>R</kbd></button>
-      <button type="button" class="action-pill-btn" id="btn-hint" aria-pressed="false">Dica</button>
-      <button type="button" class="action-pill-btn" id="btn-custom-eq">Equação livre</button>
+      <button type="button" class="action-pill-btn" id="btn-reset" aria-keyshortcuts="R">
+        <svg class="btn-icon btn-icon-reload" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9L2 6"/>
+          <path d="M2 2v4h4"/>
+        </svg>
+        <span>Reiniciar</span>
+      </button>
+      <button type="button" class="action-pill-btn" id="btn-hint" aria-pressed="false">
+        <svg class="btn-icon btn-icon-hint" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="8" cy="8" r="4"/>
+          <line x1="8" y1="1" x2="8" y2="2.5"/>
+          <line x1="8" y1="13.5" x2="8" y2="15"/>
+          <line x1="1" y1="8" x2="2.5" y2="8"/>
+          <line x1="13.5" y1="8" x2="15" y2="8"/>
+        </svg>
+        <span>Dica</span>
+      </button>
+      <button type="button" class="action-pill-btn" id="btn-custom-eq">
+        <span>Equação livre</span>
+        <svg class="btn-arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="3" y1="8" x2="13" y2="8"/>
+          <polyline points="9 4 13 8 9 12"/>
+        </svg>
+      </button>
     </div>
     </section>
   </main>
@@ -132,25 +147,25 @@
   </div>
 
   <div class="modal-backdrop" id="levels-modal" inert>
-    <div class="win-card" style="border-color: #38bdf8; box-shadow: 0 0 30px rgba(56, 189, 248, 0.4);">
-      <h2 class="win-title" style="color: #38bdf8;">Fases</h2>
+    <div class="win-card levels-card">
+      <h2 class="win-title">Fases</h2>
       <div class="level-picker-grid" id="levels-grid"></div>
-      <button type="button" class="action-pill-btn" style="margin: 0 auto; width: 100%; justify-content: center;" id="btn-close-levels">Fechar</button>
+      <button type="button" class="action-pill-btn modal-close-btn" id="btn-close-levels">Fechar</button>
     </div>
   </div>
 
   <div class="modal-backdrop" id="custom-modal" inert>
-    <div class="win-card" style="border-color: #a855f7;">
-      <h2 class="win-title" style="color: #c084fc;">Equação livre</h2>
-      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; font-family: 'Fira Code', monospace; font-size: 18px;">
-        <input type="number" id="cust-lx" value="2" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #38bdf8; background: #0f172a; color: #fff; text-align: center;"> x +
-        <input type="number" id="cust-lc" value="3" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #38bdf8; background: #0f172a; color: #fff; text-align: center;"> =
-        <input type="number" id="cust-rx" value="1" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #c084fc; background: #0f172a; color: #fff; text-align: center;"> x +
-        <input type="number" id="cust-rc" value="5" style="width: 48px; padding: 6px; border-radius: 8px; border: 1px solid #c084fc; background: #0f172a; color: #fff; text-align: center;">
+    <div class="win-card custom-card">
+      <h2 class="win-title">Equação livre</h2>
+      <div class="custom-inputs-row">
+        <input type="number" id="cust-lx" class="cust-input" value="2"> <span class="custom-op-label">x +</span>
+        <input type="number" id="cust-lc" class="cust-input" value="3"> <span class="custom-op-label">=</span>
+        <input type="number" id="cust-rx" class="cust-input" value="1"> <span class="custom-op-label">x +</span>
+        <input type="number" id="cust-rc" class="cust-input" value="5">
       </div>
       <p class="op-number-note" id="custom-eq-note" hidden></p>
-      <button type="button" class="btn-next-level" style="background: linear-gradient(135deg, #a855f7, #7c3aed); border-color: #d8b4fe;" id="btn-start-custom">Jogar</button>
-      <button type="button" class="action-pill-btn" style="margin: 12px auto 0; width: 100%; justify-content: center;" id="btn-close-custom">Cancelar</button>
+      <button type="button" class="btn-next-level" id="btn-start-custom">Jogar</button>
+      <button type="button" class="action-pill-btn modal-close-btn" id="btn-close-custom">Cancelar</button>
     </div>
   </div>
 

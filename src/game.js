@@ -55,10 +55,21 @@ function selectedOperand(game) {
   return checked?.value === Operand.UNKNOWN ? Operand.UNKNOWN : Operand.NUMBER;
 }
 
+function triggerOpVisualFeedback(operation) {
+  if (typeof document === 'undefined') return;
+  const btn = document.querySelector(`.op-btn[data-op="${operation}"]`);
+  if (!btn) return;
+  btn.classList.add('is-pressed');
+  setTimeout(() => btn.classList.remove('is-pressed'), 140);
+}
+
 function beginOperation(game, operation) {
+  triggerOpVisualFeedback(operation);
   game.pendingOperation = operation;
   game.els.opsPanel.classList.add('is-asking-number');
   game.els.opNumberPanel.hidden = false;
+  const opsHeader = document.querySelector('.ops-header-area');
+  if (opsHeader) opsHeader.classList.add('is-hidden');
 
   const needsOperand = operation === Operation.ADD || operation === Operation.SUBTRACT;
   game.els.operandSelector.hidden = !needsOperand;
@@ -81,6 +92,13 @@ function cancelOperation(game) {
   game.els.opNumberPanel.hidden = true;
   showOpNote(game, '');
   game.els.opNumberValue.blur();
+  const opsHeader = document.querySelector('.ops-header-area');
+  if (opsHeader) opsHeader.classList.remove('is-hidden');
+  const speechBubble = document.getElementById('ops-speech-bubble');
+  if (speechBubble) {
+    speechBubble.classList.remove('is-visible');
+    speechBubble.style.setProperty('--tail-x', '50%');
+  }
 }
 
 function confirmOperation(game) {
@@ -287,10 +305,37 @@ function bindControls(game) {
     loadLevel(game, game.levels.length - 1);
   });
 
+  const speechBubble = document.getElementById('ops-speech-bubble');
+  const speechBubbleText = document.getElementById('ops-speech-bubble-text');
+  const defaultBubbleText = 'Escolha a operação desejada';
+
   document.querySelectorAll('.op-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       applyOperationBothSides(game, btn.dataset.op);
     });
+
+    const activateHint = () => {
+      if (!speechBubble || !speechBubbleText) return;
+      speechBubbleText.textContent = btn.dataset.hint || '';
+      const btnRect = btn.getBoundingClientRect();
+      const bubbleRect = speechBubble.getBoundingClientRect();
+      if (bubbleRect.width > 0) {
+        const offset = btnRect.left + btnRect.width / 2 - bubbleRect.left;
+        const clamped = Math.max(16, Math.min(bubbleRect.width - 16, offset));
+        speechBubble.style.setProperty('--tail-x', `${clamped}px`);
+      }
+      speechBubble.classList.add('is-visible');
+    };
+
+    const resetHint = () => {
+      if (!speechBubble) return;
+      speechBubble.classList.remove('is-visible');
+    };
+
+    btn.addEventListener('mouseenter', activateHint);
+    btn.addEventListener('mouseleave', resetHint);
+    btn.addEventListener('focus', activateHint);
+    btn.addEventListener('blur', resetHint);
   });
 
   game.els.btnOpNumberOk.addEventListener('click', () => confirmOperation(game));
