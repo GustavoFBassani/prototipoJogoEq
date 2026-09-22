@@ -55,15 +55,16 @@ function selectedOperand(game) {
   return checked?.value === Operand.UNKNOWN ? Operand.UNKNOWN : Operand.NUMBER;
 }
 
-function beginOperation(game, operation) {
+export function beginOperation(game, operation) {
   game.pendingOperation = operation;
   game.els.opsPanel.classList.add('is-asking-number');
   game.els.opNumberPanel.hidden = false;
 
   const needsOperand = operation === Operation.ADD || operation === Operation.SUBTRACT;
-  game.els.operandSelector.hidden = !needsOperand;
+  game.els.operandSelector.hidden = false;
+  game.els.operandSelector.classList.toggle('is-number-only', !needsOperand);
+  game.els.operandLegend.textContent = mapOperationToTextContent(operation);
   if (needsOperand) {
-    game.els.operandLegend.textContent = operation === Operation.ADD ? 'Somar o quê?' : 'Subtrair o quê?';
     game.els.operandNumber.checked = true;
     game.els.opNumberValue.value = '1';
   } else {
@@ -73,6 +74,21 @@ function beginOperation(game, operation) {
   showOpNote(game, '');
   game.els.opNumberValue.focus();
   game.els.opNumberValue.select();
+}
+
+function mapOperationToTextContent (operation) {
+  switch (operation) {
+    case Operation.ADD:
+      return 'Somar o quê?';
+    case Operation.SUBTRACT:
+      return 'Subtrair o quê?';
+    case Operation.MULTIPLY:
+      return 'Multiplicar o quê?';
+    case Operation.DIVIDE:
+      return 'Dividir o quê?';
+    default:
+      return '';
+  }
 }
 
 function cancelOperation(game) {
