@@ -83,9 +83,9 @@ function mapOperationToTextContent (operation) {
     case Operation.SUBTRACT:
       return 'Subtrair o quê?';
     case Operation.MULTIPLY:
-      return 'Multiplicar o quê?';
+      return 'Multiplicar por?';
     case Operation.DIVIDE:
-      return 'Dividir o quê?';
+      return 'Dividir por?';
     default:
       return '';
   }
