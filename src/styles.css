@@ -35,13 +35,13 @@
   --btn-green-shadow: 0 4px 14px rgba(81, 158, 122, 0.28), 0 2px 4px rgba(0, 0, 0, 0.08);
   --btn-green-shadow-hover: 0 8px 22px rgba(81, 158, 122, 0.38), 0 3px 6px rgba(0, 0, 0, 0.12);
 
-  /* Tokens de Vidro Líquido Claro */
-  --glass-bg: rgba(255, 255, 255, 0.84);
-  --glass-bg-hover: rgba(255, 255, 255, 0.94);
-  --glass-border: rgba(79, 139, 158, 0.18);
-  --glass-border-top: rgba(255, 255, 255, 0.95);
-  --glass-shadow: 0 8px 28px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  --glass-glow: 0 0 30px rgba(79, 139, 158, 0.1);
+  /* Tokens de Vidro Líquido Claro em Tom Cinza Suave (Anti-Brilho) */
+  --glass-bg: rgba(238, 242, 246, 0.88);
+  --glass-bg-hover: rgba(243, 246, 249, 0.94);
+  --glass-border: rgba(203, 213, 225, 0.7);
+  --glass-border-top: rgba(255, 255, 255, 0.9);
+  --glass-shadow: 0 12px 32px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --glass-glow: 0 0 30px rgba(79, 139, 158, 0.12);
 
   --shadow-soft: 0 16px 36px rgba(15, 23, 42, 0.07), 0 2px 8px rgba(15, 23, 42, 0.04);
 
@@ -337,27 +337,29 @@ main {
   line-height: 1.2;
   padding: 11px 36px;
   min-width: 270px;
-  background: rgba(255, 255, 255, 0.88);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  backdrop-filter: blur(28px) saturate(160%);
+  background: rgba(238, 242, 246, 0.92);
+  -webkit-backdrop-filter: blur(28px) saturate(150%);
+  backdrop-filter: blur(28px) saturate(150%);
   border-radius: var(--radius-full);
-  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  border: 1.5px solid rgba(218, 226, 235, 0.85);
+  border-top: 1.5px solid rgba(255, 255, 255, 0.95);
   box-shadow: 
     0 22px 50px -8px rgba(15, 23, 42, 0.22),
     0 10px 24px -4px rgba(15, 23, 42, 0.14),
     0 3px 8px -1px rgba(15, 23, 42, 0.08),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 1);
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
   color: var(--text-primary);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .math-formula-wrapper:hover {
+  background: rgba(243, 246, 249, 0.96);
   transform: translateY(-2px);
   box-shadow: 
     0 28px 60px -8px rgba(15, 23, 42, 0.28),
     0 14px 28px -4px rgba(15, 23, 42, 0.18),
     0 4px 10px -1px rgba(15, 23, 42, 0.1),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 1);
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
   border-color: rgba(2, 132, 199, 0.35);
 }
 
@@ -478,9 +480,10 @@ main {
 
 .equation-container {
   background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(25px) saturate(160%);
-  backdrop-filter: blur(25px) saturate(160%);
+  -webkit-backdrop-filter: blur(25px) saturate(150%);
+  backdrop-filter: blur(25px) saturate(150%);
   border: 1.5px solid var(--glass-border);
+  border-top: 1.5px solid var(--glass-border-top);
   border-radius: var(--radius-xl);
   box-shadow: var(--glass-shadow);
   padding: 18px;
@@ -492,11 +495,12 @@ main {
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
   z-index: 2;
 }
 
 .equation-container:hover {
+  background: var(--glass-bg-hover);
   box-shadow: var(--shadow-soft), var(--glass-glow);
   border-color: rgba(79, 139, 158, 0.45);
 }
@@ -510,8 +514,8 @@ main {
   gap: 12px;
   padding: 16px;
   border-radius: var(--radius-lg);
-  background: rgba(248, 250, 252, 0.45);
-  border: 1.5px dashed rgba(79, 139, 158, 0.24);
+  background: rgba(226, 232, 240, 0.55);
+  border: 1.5px dashed rgba(148, 163, 184, 0.45);
   min-height: 235px;
   position: relative;
   transition: background-color 0.2s ease, border-color 0.2s ease;
@@ -519,7 +523,7 @@ main {
 
 .items-dropzone.drag-active {
   border-color: rgba(79, 139, 158, 0.55);
-  background: rgba(79, 139, 158, 0.08);
+  background: rgba(79, 139, 158, 0.12);
 }
 
 /* Fulcro da Balança (Símbolo de Equilíbrio) */
@@ -535,7 +539,7 @@ main {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(180deg, #f8fafc 0%, #e8edf3 100%);
   border: 1.5px solid rgba(79, 139, 158, 0.35);
   border-top: 1.5px solid rgba(255, 255, 255, 0.95);
   box-shadow:
@@ -543,7 +547,7 @@ main {
     0 6px 16px rgba(15, 23, 42, 0.08),
     inset 0 1.5px 0 rgba(255, 255, 255, 1);
   color: var(--accent);
-  font-family: var(--font-math);
+  font-family: var(--font-equation);
   font-size: 24px;
   font-weight: 700;
   display: flex;
