@@ -207,10 +207,10 @@ header {
 }
 
 .logo-title {
-  font-family: var(--font-main);
+  font-family: 'Chewy', var(--font-main);
   font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 400;
+  letter-spacing: 0;
   color: var(--text-primary);
 }
 
