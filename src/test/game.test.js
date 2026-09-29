@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { advanceFromWinModal, handleGameKeydown, resetCurrentLevel } from '../game.js';
+import { Operation } from '../keys.js';
+import { advanceFromWinModal, handleGameKeydown, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
 
 function mockModal(active) {
   const classes = new Set(active ? ['active'] : []);
@@ -13,7 +14,8 @@ function mockModal(active) {
   };
 }
 
-function mockGame({ modalActive = false, pendingOperation = null, currentLevelIndex = 0 } = {}) {
+function mockGame({ modalActive = false, pendingOperation = null, currentLevelIndex = 0, operandValue = '1', operand = 'number' } = {}) {
+  let checkedOperand = operand;
   return {
     currentLevelIndex,
     levels: [{}, {}],
@@ -24,7 +26,20 @@ function mockGame({ modalActive = false, pendingOperation = null, currentLevelIn
       winModal: mockModal(modalActive),
       levelsModal: mockModal(false),
       customModal: mockModal(false),
-      opNumberValue: { id: 'op-number-value', tagName: 'INPUT', isContentEditable: false },
+      opNumberValue: { id: 'op-number-value', tagName: 'INPUT', isContentEditable: false, value: operandValue },
+      opNumberNote: { hidden: true, textContent: '' },
+      operandSelector: {
+        hidden: false,
+        querySelector: (selector) => {
+          if (selector === 'input[name="operand"]:checked') {
+            return { value: checkedOperand };
+          }
+          return null;
+        },
+      },
+    },
+    setOperand(op) {
+      checkedOperand = op;
     },
   };
 }
@@ -123,5 +138,126 @@ describe('handleGameKeydown', () => {
     const event = keyEvent('r', board, { ctrlKey: true });
     handleGameKeydown(game, event);
     expect(game.loadLevel).not.toHaveBeenCalled();
+  });
+});
+
+describe('stepOpValue and updateOpValueForOperand', () => {
+  it('increases and decreases numbers correctly', () => {
+    const game = mockGame({ operandValue: '1', operand: 'number' });
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('2');
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('3');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('2');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('1');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('1');
+  });
+
+  it('increases and decreases x terms correctly (x -> 2x -> 3x -> 2x -> x)', () => {
+    const game = mockGame({ operandValue: 'x', operand: 'unknown' });
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('2x');
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('3x');
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('4x');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('3x');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('2x');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('x');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('x');
+  });
+
+  it('switches between number and x correctly', () => {
+    const game = mockGame({ operandValue: '1', operand: 'number' });
+    game.setOperand('unknown');
+    updateOpValueForOperand(game);
+    expect(game.els.opNumberValue.value).toBe('x');
+
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('2x');
+
+    game.setOperand('number');
+    updateOpValueForOperand(game);
+    expect(game.els.opNumberValue.value).toBe('2');
+
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('3');
+
+    game.setOperand('unknown');
+    updateOpValueForOperand(game);
+    expect(game.els.opNumberValue.value).toBe('3x');
+  });
+
+  it('steps and formats values for ADD (+1 -> +2 -> +3, and +x -> +2x)', () => {
+    const game = mockGame({ pendingOperation: Operation.ADD, operandValue: '+1', operand: 'number' });
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('+2');
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('+3');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('+2');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('+1');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('+1');
+
+    game.setOperand('unknown');
+    updateOpValueForOperand(game);
+    expect(game.els.opNumberValue.value).toBe('+x');
+
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('+2x');
+
+    game.setOperand('number');
+    updateOpValueForOperand(game);
+    expect(game.els.opNumberValue.value).toBe('+2');
+  });
+
+  it('steps and formats values for SUBTRACT (-1 -> -2 -> -3, and -x -> -2x)', () => {
+    const game = mockGame({ pendingOperation: Operation.SUBTRACT, operandValue: '-1', operand: 'number' });
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('-2');
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('-3');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('-2');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('-1');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('-1');
+
+    game.setOperand('unknown');
+    updateOpValueForOperand(game);
+    expect(game.els.opNumberValue.value).toBe('-x');
+
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('-2x');
+
+    game.setOperand('number');
+    updateOpValueForOperand(game);
+    expect(game.els.opNumberValue.value).toBe('-2');
+  });
+
+  it('steps and formats values for MULTIPLY (×2 -> ×3 -> ×2)', () => {
+    const game = mockGame({ pendingOperation: Operation.MULTIPLY, operandValue: '×2', operand: 'number' });
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('×3');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('×2');
+  });
+
+  it('steps and formats values for DIVIDE (÷2 -> ÷3 -> ÷2)', () => {
+    const game = mockGame({ pendingOperation: Operation.DIVIDE, operandValue: '÷2', operand: 'number' });
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('÷3');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('÷2');
   });
 });

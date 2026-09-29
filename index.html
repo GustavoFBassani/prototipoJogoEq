@@ -6,7 +6,7 @@
   <title>EquaLab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=STIX+Two+Text:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700&family=STIX+Two+Text:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <canvas id="particle-canvas"></canvas>
@@ -39,7 +39,9 @@
             <span class="math-equal-sign">=</span>
             <span class="math-side-rhs" id="math-rhs">5</span>
           </div>
-          <div class="instruction-hint" id="instruction-hint" hidden></div>
+          <div class="hint-slot">
+            <div class="instruction-hint" id="instruction-hint" hidden></div>
+          </div>
         </div>
 
         <div class="containers-grid">
@@ -57,77 +59,93 @@
         </div>
       </section>
 
-    <div class="ops-header-area">
-      <h3 class="ops-title">Escolha a operação desejada</h3>
-      <div class="ops-speech-bubble" id="ops-speech-bubble" aria-live="polite">
-        <span class="speech-bubble-text" id="ops-speech-bubble-text"></span>
+    <div class="ops-section-container">
+      <div class="ops-header-area">
+        <h3 class="ops-title">Escolha a operação desejada</h3>
+        <div class="ops-speech-bubble" id="ops-speech-bubble" aria-live="polite">
+          <span class="speech-bubble-text" id="ops-speech-bubble-text"></span>
+        </div>
       </div>
-    </div>
 
-    <section class="operations-panel">
-      <div class="ops-buttons-grid">
-        <button type="button" class="op-btn op-btn-pos-one" data-op="add" data-hint="Soma o mesmo valor aos dois lados da equação" title="Somar nos dois lados" aria-label="Somar">
-          <span class="op-symbol">+</span>
+      <section class="operations-panel">
+        <div class="ops-buttons-grid">
+          <button type="button" class="op-btn op-btn-pos-one" data-op="add" data-hint="Soma o mesmo valor aos dois lados da equação" title="Somar nos dois lados" aria-label="Somar">
+            <span class="op-symbol">+</span>
+          </button>
+          <button type="button" class="op-btn op-btn-neg-one" data-op="subtract" data-hint="Subtrai o mesmo valor dos dois lados da equação" title="Subtrair nos dois lados" aria-label="Subtrair">
+            <span class="op-symbol">−</span>
+          </button>
+          <button type="button" class="op-btn op-btn-mult" data-op="multiply" data-hint="Multiplica os dois lados da equação para eliminar frações" title="Multiplicar os dois lados" aria-label="Multiplicar">
+            <span class="op-symbol">×</span>
+          </button>
+          <button type="button" class="op-btn op-btn-div" data-op="divide" data-hint="Divide os dois lados da equação para isolar o x" title="Dividir os dois lados" aria-label="Dividir">
+            <span class="op-symbol">÷</span>
+          </button>
+        </div>
+        <div class="op-number-panel" id="op-number-panel" hidden>
+          <fieldset class="operand-selector" id="operand-selector">
+            <legend id="operand-legend">Número ou x?</legend>
+            <label class="operand-label-number">
+              <input type="radio" name="operand" id="operand-number" value="number" checked>
+              <span>número</span>
+            </label>
+            <label class="operand-label-unknown">
+              <input type="radio" name="operand" id="operand-unknown" value="unknown">
+              <span>x</span>
+            </label>
+          </fieldset>
+          <button type="button" class="icon-btn op-back-btn" id="btn-op-number-cancel" title="Voltar às operações" aria-label="Voltar às operações">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="13" y1="8" x2="3" y2="8"/>
+              <polyline points="7 4 3 8 7 12"/>
+            </svg>
+          </button>
+          <div class="op-stepper">
+            <input type="text" id="op-number-value" value="1" autocomplete="off" spellcheck="false" aria-label="Valor da operação">
+            <div class="op-stepper-arrows">
+              <button type="button" class="op-step-btn op-step-up" id="btn-op-step-up" title="Aumentar" aria-label="Aumentar">
+                <svg viewBox="0 0 10 6" width="10" height="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="1 5 5 1 9 5"/>
+                </svg>
+              </button>
+              <button type="button" class="op-step-btn op-step-down" id="btn-op-step-down" title="Diminuir" aria-label="Diminuir">
+                <svg viewBox="0 0 10 6" width="10" height="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="1 1 5 5 9 1"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn-next-level" id="btn-op-number-ok">Ok</button>
+          <p class="op-number-note" id="op-number-note" hidden></p>
+        </div>
+      </section>
+
+      <div class="footer-actions">
+        <button type="button" class="action-pill-btn" id="btn-reset" aria-keyshortcuts="R">
+          <svg class="btn-icon btn-icon-reload" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9L2 6"/>
+            <path d="M2 2v4h4"/>
+          </svg>
+          <span>Reiniciar</span>
         </button>
-        <button type="button" class="op-btn op-btn-neg-one" data-op="subtract" data-hint="Subtrai o mesmo valor dos dois lados da equação" title="Subtrair nos dois lados" aria-label="Subtrair">
-          <span class="op-symbol">−</span>
+        <button type="button" class="action-pill-btn" id="btn-hint" aria-pressed="false">
+          <svg class="btn-icon btn-icon-hint" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="8" cy="8" r="4"/>
+            <line x1="8" y1="1" x2="8" y2="2.5"/>
+            <line x1="8" y1="13.5" x2="8" y2="15"/>
+            <line x1="1" y1="8" x2="2.5" y2="8"/>
+            <line x1="13.5" y1="8" x2="15" y2="8"/>
+          </svg>
+          <span>Dica</span>
         </button>
-        <button type="button" class="op-btn op-btn-mult" data-op="multiply" data-hint="Multiplica os dois lados da equação para eliminar frações" title="Multiplicar os dois lados" aria-label="Multiplicar">
-          <span class="op-symbol">×</span>
-        </button>
-        <button type="button" class="op-btn op-btn-div" data-op="divide" data-hint="Divide os dois lados da equação para isolar o x" title="Dividir os dois lados" aria-label="Dividir">
-          <span class="op-symbol">÷</span>
-        </button>
-      </div>
-      <div class="op-number-panel" id="op-number-panel" hidden>
-        <fieldset class="operand-selector" id="operand-selector">
-          <legend id="operand-legend">Número ou x?</legend>
-          <label class="operand-label-number">
-            <input type="radio" name="operand" id="operand-number" value="number" checked>
-            <span>número</span>
-          </label>
-          <label class="operand-label-unknown">
-            <input type="radio" name="operand" id="operand-unknown" value="unknown">
-            <span>x</span>
-          </label>
-        </fieldset>
-        <button type="button" class="icon-btn op-back-btn" id="btn-op-number-cancel" title="Voltar às operações" aria-label="Voltar às operações">
-          <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <line x1="13" y1="8" x2="3" y2="8"/>
-            <polyline points="7 4 3 8 7 12"/>
+        <button type="button" class="action-pill-btn" id="btn-custom-eq">
+          <span>Equação livre</span>
+          <svg class="btn-arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="8" x2="13" y2="8"/>
+            <polyline points="9 4 13 8 9 12"/>
           </svg>
         </button>
-        <input type="number" id="op-number-value" value="1" step="any">
-        <button type="button" class="btn-next-level" id="btn-op-number-ok">Ok</button>
-        <p class="op-number-note" id="op-number-note" hidden></p>
       </div>
-    </section>
-
-    <div class="footer-actions">
-      <button type="button" class="action-pill-btn" id="btn-reset" aria-keyshortcuts="R">
-        <svg class="btn-icon btn-icon-reload" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9L2 6"/>
-          <path d="M2 2v4h4"/>
-        </svg>
-        <span>Reiniciar</span>
-      </button>
-      <button type="button" class="action-pill-btn" id="btn-hint" aria-pressed="false">
-        <svg class="btn-icon btn-icon-hint" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="8" cy="8" r="4"/>
-          <line x1="8" y1="1" x2="8" y2="2.5"/>
-          <line x1="8" y1="13.5" x2="8" y2="15"/>
-          <line x1="1" y1="8" x2="2.5" y2="8"/>
-          <line x1="13.5" y1="8" x2="15" y2="8"/>
-        </svg>
-        <span>Dica</span>
-      </button>
-      <button type="button" class="action-pill-btn" id="btn-custom-eq">
-        <span>Equação livre</span>
-        <svg class="btn-arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <line x1="3" y1="8" x2="13" y2="8"/>
-          <polyline points="9 4 13 8 9 12"/>
-        </svg>
-      </button>
     </div>
     </section>
   </main>

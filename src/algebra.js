@@ -93,12 +93,12 @@ export function resolveDrop(source, target) {
 export function getTokenColors(item) {
   if (item.kind === 'variable') {
     return item.num > 0
-      ? { main: '#0284c7', glow: '#38bdf8' }
-      : { main: '#e11d48', glow: '#f87171' };
+      ? { main: '#25527a', glow: '#4f8b9e' }
+      : { main: '#9e3538', glow: '#c85356' };
   }
   return item.num > 0
-    ? { main: '#16a34a', glow: '#4ade80' }
-    : { main: '#d97706', glow: '#fbbf24' };
+    ? { main: '#387b5c', glow: '#519e7a' }
+    : { main: '#c85f28', glow: '#e07b39' };
 }
 
 export function getTokenClasses(item) {

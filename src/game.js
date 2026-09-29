@@ -1,6 +1,6 @@
 import { LEVELS } from './levels.js';
 import { renderAll, renderLevelsPicker } from './render.js';
-import { applyOperationBothSides, applyNumberToBothSides, parseOpNumber } from './operations.js';
+import { applyOperationBothSides, applyNumberToBothSides, parseOpNumber, formatOpDisplay } from './operations.js';
 import { checkWinCondition } from './win.js';
 import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget, isResetKey, isNextLevelKey, hasKeyModifier } from './keys.js';
 
@@ -10,6 +10,7 @@ function queryEls() {
     dropzoneRhs: document.getElementById('dropzone-rhs'),
     mathLhs: document.getElementById('math-lhs'),
     mathRhs: document.getElementById('math-rhs'),
+    mathFormulaWrapper: document.querySelector('.math-formula-wrapper'),
     levelLabel: document.getElementById('current-level-label'),
     instructionHint: document.getElementById('instruction-hint'),
     winModal: document.getElementById('win-modal'),
@@ -25,8 +26,11 @@ function queryEls() {
     operandSelector: document.getElementById('operand-selector'),
     operandLegend: document.getElementById('operand-legend'),
     operandNumber: document.getElementById('operand-number'),
+    operandUnknown: document.getElementById('operand-unknown'),
     btnOpNumberOk: document.getElementById('btn-op-number-ok'),
     btnOpNumberCancel: document.getElementById('btn-op-number-cancel'),
+    btnOpStepUp: document.getElementById('btn-op-step-up'),
+    btnOpStepDown: document.getElementById('btn-op-step-down'),
     btnSound: document.getElementById('btn-sound'),
     btnLevels: document.getElementById('btn-levels'),
     btnCloseLevels: document.getElementById('btn-close-levels'),
@@ -51,8 +55,29 @@ function showOpNote(game, text) {
 }
 
 function selectedOperand(game) {
-  const checked = game.els.operandSelector.querySelector('input[name="operand"]:checked');
+  if (game.els.operandSelector?.hidden) return Operand.NUMBER;
+  const raw = game.els.opNumberValue?.value?.trim().toLowerCase() || '';
+  if (raw.includes('x')) return Operand.UNKNOWN;
+  const checked = game.els.operandSelector?.querySelector('input[name="operand"]:checked');
   return checked?.value === Operand.UNKNOWN ? Operand.UNKNOWN : Operand.NUMBER;
+}
+
+export function stepOpValue(game, delta) {
+  const operand = selectedOperand(game);
+  const current = parseOpNumber(game.els.opNumberValue.value) ?? 1;
+  const magnitude = Math.abs(current);
+  const next = Math.max(1, magnitude + delta);
+  game.els.opNumberValue.value = formatOpDisplay(next, operand, game.pendingOperation);
+  showOpNote(game, '');
+}
+
+export function updateOpValueForOperand(game) {
+  const checked = game.els.operandSelector?.querySelector('input[name="operand"]:checked');
+  const operand = checked?.value === Operand.UNKNOWN ? Operand.UNKNOWN : Operand.NUMBER;
+  const current = parseOpNumber(game.els.opNumberValue.value) ?? 1;
+  const magnitude = Math.abs(current);
+  game.els.opNumberValue.value = formatOpDisplay(magnitude, operand, game.pendingOperation);
+  showOpNote(game, '');
 }
 
 function triggerOpVisualFeedback(operation) {
@@ -76,9 +101,9 @@ function beginOperation(game, operation) {
   if (needsOperand) {
     game.els.operandLegend.textContent = operation === Operation.ADD ? 'Somar o quê?' : 'Subtrair o quê?';
     game.els.operandNumber.checked = true;
-    game.els.opNumberValue.value = '1';
+    game.els.opNumberValue.value = formatOpDisplay(1, Operand.NUMBER, operation);
   } else {
-    game.els.opNumberValue.value = '2';
+    game.els.opNumberValue.value = formatOpDisplay(2, Operand.NUMBER, operation);
   }
 
   showOpNote(game, '');
@@ -102,15 +127,28 @@ function cancelOperation(game) {
 }
 
 function confirmOperation(game) {
-  const { operation, operand } = operationWithOperand(game.pendingOperation, selectedOperand(game));
-  const n = parseOpNumber(game.els.opNumberValue.value);
+  const operand = selectedOperand(game);
+  const { operation } = operationWithOperand(game.pendingOperation, operand);
+  const raw = String(game.els.opNumberValue.value || '').trim().toLowerCase();
+
+  if (
+    (game.pendingOperation === Operation.MULTIPLY || game.pendingOperation === Operation.DIVIDE) &&
+    raw.includes('x')
+  ) {
+    showOpNote(game, 'Multiplicação e divisão aceitam apenas números.');
+    game.els.opNumberValue.focus();
+    return;
+  }
+
+  const n = parseOpNumber(raw);
   if (n == null) {
-    const zero = Number(game.els.opNumberValue.value) === 0;
+    const clean = raw.replace(/−/g, '-').replace(/^[+−\-×*·÷/:\s]+/, '');
+    const zero = clean !== '' && (Number(clean) === 0 || clean === '0x');
     showOpNote(
       game,
       zero
         ? 'Zero desequilibra a balança. Escolhe outro número.'
-        : 'Escolhe um número diferente de zero.'
+        : 'Escolhe um valor válido diferente de zero.'
     );
     game.els.opNumberValue.focus();
     return;
@@ -341,6 +379,76 @@ function bindControls(game) {
   game.els.btnOpNumberOk.addEventListener('click', () => confirmOperation(game));
   game.els.btnOpNumberCancel.addEventListener('click', () => cancelOperation(game));
 
+  if (game.els.operandSelector) {
+    game.els.operandSelector.addEventListener('change', () => {
+      updateOpValueForOperand(game);
+    });
+    game.els.operandSelector.querySelectorAll('input[name="operand"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        updateOpValueForOperand(game);
+      });
+    });
+  }
+
+  if (game.els.btnOpStepUp) {
+    game.els.btnOpStepUp.addEventListener('click', (e) => {
+      e.preventDefault();
+      stepOpValue(game, 1);
+      game.els.opNumberValue.focus();
+    });
+  }
+
+  if (game.els.btnOpStepDown) {
+    game.els.btnOpStepDown.addEventListener('click', (e) => {
+      e.preventDefault();
+      stepOpValue(game, -1);
+      game.els.opNumberValue.focus();
+    });
+  }
+
+  if (game.els.opNumberValue) {
+    game.els.opNumberValue.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        stepOpValue(game, 1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        stepOpValue(game, -1);
+      }
+    });
+
+    game.els.opNumberValue.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        stepOpValue(game, 1);
+      } else if (e.deltaY > 0) {
+        stepOpValue(game, -1);
+      }
+    }, { passive: false });
+
+    game.els.opNumberValue.addEventListener('input', () => {
+      showOpNote(game, '');
+      const raw = game.els.opNumberValue.value.trim().toLowerCase();
+      if (!game.els.operandSelector?.hidden) {
+        if (raw.includes('x') && game.els.operandUnknown) {
+          game.els.operandUnknown.checked = true;
+        } else if (!raw.includes('x') && game.els.operandNumber && /^[+−\-]?\d+$/.test(raw)) {
+          game.els.operandNumber.checked = true;
+        }
+      }
+    });
+
+    game.els.opNumberValue.addEventListener('blur', () => {
+      const raw = game.els.opNumberValue.value.trim().toLowerCase();
+      if (!raw) return;
+      const operand = selectedOperand(game);
+      const n = parseOpNumber(raw);
+      if (n != null) {
+        game.els.opNumberValue.value = formatOpDisplay(n, operand, game.pendingOperation);
+      }
+    });
+  }
+
   window.addEventListener('keydown', (e) => handleGameKeydown(game, e));
 }
 
@@ -364,6 +472,12 @@ export function bootGame({ sound, particles }) {
     els,
     beginOperation(operation) {
       beginOperation(game, operation);
+    },
+    stepOpValue(delta) {
+      stepOpValue(game, delta);
+    },
+    updateOpValueForOperand() {
+      updateOpValueForOperand(game);
     },
     showOpNote(text) {
       showOpNote(game, text);

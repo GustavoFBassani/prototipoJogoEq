@@ -33,6 +33,14 @@ export function renderAll(game) {
   els.mathLhs.textContent = formatAlgebraicSide(game.lhsItems);
   els.mathRhs.textContent = formatAlgebraicSide(game.rhsItems);
 
+  if (els.mathFormulaWrapper?.classList) {
+    els.mathFormulaWrapper.classList.remove('is-updated');
+    if ('offsetWidth' in els.mathFormulaWrapper) {
+      void els.mathFormulaWrapper.offsetWidth;
+    }
+    els.mathFormulaWrapper.classList.add('is-updated');
+  }
+
   game.checkWin();
 }
 

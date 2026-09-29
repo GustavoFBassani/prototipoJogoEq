@@ -16,9 +16,68 @@ function scaleItems(items, mutate) {
 }
 
 export function parseOpNumber(raw) {
-  const n = Number(String(raw).trim());
+  if (raw == null) return null;
+  let s = String(raw).trim().toLowerCase();
+  if (!s) return null;
+
+  s = s.replace(/−/g, '-');
+  s = s.replace(/^[×*·÷/:]\s*/, '');
+
+  const xMatch = s.match(/^([+-]?\d*(?:\.\d+)?)x$/);
+  if (xMatch) {
+    const coeffStr = xMatch[1];
+    let coeff;
+    if (coeffStr === '' || coeffStr === '+') coeff = 1;
+    else if (coeffStr === '-') coeff = -1;
+    else coeff = Number(coeffStr);
+
+    if (!Number.isFinite(coeff) || coeff === 0) return null;
+    return coeff;
+  }
+
+  const n = Number(s);
   if (!Number.isFinite(n) || n === 0) return null;
   return n;
+}
+
+export function formatOpDisplay(val, operand, operation = null) {
+  const n = typeof val === 'number' ? val : (parseOpNumber(val) ?? 1);
+  if (!operation) {
+    if (operand === Operand.UNKNOWN) {
+      if (n === 1) return 'x';
+      if (n === -1) return '-x';
+      return `${n}x`;
+    }
+    return String(n);
+  }
+
+  if (operation === Operation.ADD) {
+    if (operand === Operand.UNKNOWN) {
+      if (n === 1) return '+x';
+      if (n === -1) return '-x';
+      return `${n > 0 ? '+' : ''}${n}x`;
+    }
+    return `${n > 0 ? '+' : ''}${n}`;
+  }
+
+  if (operation === Operation.SUBTRACT) {
+    const mag = Math.abs(n);
+    if (operand === Operand.UNKNOWN) {
+      if (mag === 1) return '-x';
+      return `-${mag}x`;
+    }
+    return `-${mag}`;
+  }
+
+  if (operation === Operation.MULTIPLY) {
+    return `×${n}`;
+  }
+
+  if (operation === Operation.DIVIDE) {
+    return `÷${n}`;
+  }
+
+  return String(n);
 }
 
 export function applyNumberToBothSides(game, operation, n, operand) {
@@ -50,7 +109,7 @@ export function applyNumberToBothSides(game, operation, n, operand) {
 
   if (operation === Operation.ADD || operation === Operation.SUBTRACT) {
     const kind = operand === Operand.UNKNOWN ? 'variable' : 'constant';
-    const signed = operation === Operation.SUBTRACT ? -n : n;
+    const signed = operation === Operation.SUBTRACT ? -Math.abs(n) : n;
     const term = makeTerm(kind, signed, 1);
 
     game.sound.playAddOperation();
