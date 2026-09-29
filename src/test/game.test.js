@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Operation } from '../keys.js';
-import { advanceFromWinModal, beginOperation, handleGameKeydown, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
+import { advanceFromWinModal, beginOperation, captionText, handleGameKeydown, hintButtonVisible, hintUsesHtml, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
 
 function mockModal(active) {
   const classes = new Set(active ? ['active'] : []);
@@ -311,5 +311,43 @@ describe('stepOpValue and updateOpValueForOperand', () => {
     expect(game.els.opNumberValue.value).toBe('÷3');
     stepOpValue(game, -1);
     expect(game.els.opNumberValue.value).toBe('÷2');
+  });
+});
+
+describe('activity mode helpers', () => {
+  const activityGame = {
+    activity: true,
+    activityName: 'Turma 7A',
+    levels: [
+      { title: 'Aquecimento', hint: '<b>tira</b> o 3' },
+      { title: 'Sem dica', hint: '   ' },
+    ],
+  };
+  const campaignGame = {
+    activity: false,
+    levels: [{ title: 'Fase 1', hint: 'Use <b>÷</b>' }],
+  };
+
+  it('writes activity hints as plain text', () => {
+    expect(hintUsesHtml(activityGame)).toBe(false);
+  });
+
+  it('hides the hint button when the activity hint is blank', () => {
+    expect(hintButtonVisible(activityGame, 0)).toBe(true);
+    expect(hintButtonVisible(activityGame, 1)).toBe(false);
+  });
+
+  it('keeps HTML hints and the hint button in campaign', () => {
+    expect(hintUsesHtml(campaignGame)).toBe(true);
+    expect(hintButtonVisible(campaignGame, 0)).toBe(true);
+  });
+
+  it('captions activity phases with name and title', () => {
+    expect(captionText(activityGame, 0)).toBe('Turma 7A · Aquecimento');
+    expect(captionText(activityGame, 1)).toBe('Turma 7A · Sem dica');
+  });
+
+  it('leaves the caption empty in campaign', () => {
+    expect(captionText(campaignGame, 0)).toBe('');
   });
 });

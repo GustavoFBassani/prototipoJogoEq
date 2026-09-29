@@ -18,7 +18,8 @@ export function triggerVictory(game, constTerm) {
   if (isFinalLevel) {
     game.particles.createEndGameConfettiShower();
     document.querySelector('.win-trophy').textContent = '👑';
-    document.querySelector('.win-title').textContent = 'Todas as fases';
+    document.querySelector('.win-title').textContent =
+      game.activity && game.activityName ? game.activityName : 'Todas as fases';
     document.getElementById('win-message').textContent = 'O x ficou sozinho em todas.';
     document.getElementById('btn-next-level-label').textContent = 'De novo';
   } else {

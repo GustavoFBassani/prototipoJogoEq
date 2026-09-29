@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>⚖️ IGUALAÍ</title>
+  <link rel="icon" href="/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Fira+Code:wght@500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,500;1,600;1,700&family=STIX+Two+Text:wght@500;600;700&display=swap" rel="stylesheet">
@@ -17,6 +18,7 @@
         <span class="logo-icon">⚖️</span>
         <div>
           <h1 class="logo-title">IGUALAÍ</h1>
+          <p id="activity-caption" hidden></p>
         </div>
       </div>
       <div class="header-controls">
@@ -151,6 +153,36 @@
     </section>
   </main>
   </div>
+
+  <section class="editor" id="editor" aria-labelledby="editor-title" hidden>
+    <div class="editor-card">
+      <div class="editor-head">
+        <span class="logo-icon">⚖️</span>
+        <div>
+          <p class="editor-brand">EquaLab</p>
+          <h1 class="editor-title" id="editor-title">Editor de atividades</h1>
+        </div>
+      </div>
+
+      <label class="editor-field">
+        <span class="editor-label">Nome da atividade</span>
+        <input type="text" class="editor-input" id="editor-name" autocomplete="off" placeholder="Ex.: Equações do 7º ano">
+      </label>
+
+      <ol class="editor-phases" id="editor-phases"></ol>
+
+      <button type="button" class="action-pill-btn editor-add-btn" id="editor-add">Acrescentar fase</button>
+
+      <div class="editor-link">
+        <label class="editor-label" for="editor-class-link">Link da turma</label>
+        <div class="editor-link-row">
+          <input type="text" class="editor-input" id="editor-class-link" autocomplete="off" spellcheck="false" placeholder="Cole aqui um link para abrir as fases">
+          <button type="button" class="action-pill-btn" id="editor-copy">Copiar</button>
+        </div>
+        <p class="editor-link-note" id="editor-link-note" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
 
   <div class="modal-backdrop" id="win-modal" inert>
     <div class="win-card">

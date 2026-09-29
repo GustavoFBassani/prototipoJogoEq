@@ -43,7 +43,27 @@ function queryEls() {
     btnCustomEq: document.getElementById('btn-custom-eq'),
     btnCloseCustom: document.getElementById('btn-close-custom'),
     btnStartCustom: document.getElementById('btn-start-custom'),
+    activityCaption: document.getElementById('activity-caption'),
   };
+}
+
+export function hintUsesHtml(game) {
+  return !game.activity;
+}
+
+export function hintButtonVisible(game, index) {
+  if (!game.activity) return true;
+  return String(game.levels[index]?.hint ?? '').trim() !== '';
+}
+
+export function captionText(game, index) {
+  if (!game.activity) return '';
+  return `${game.activityName ?? ''} · ${game.levels[index]?.title ?? ''}`;
+}
+
+function writeHint(game, lvl) {
+  if (hintUsesHtml(game)) game.els.instructionHint.innerHTML = lvl.hint;
+  else game.els.instructionHint.textContent = lvl.hint ?? '';
 }
 
 function setHintVisible(game, open) {
@@ -266,7 +286,12 @@ export function loadLevel(game, index) {
   const lvl = game.levels[index];
 
   game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
-  game.els.instructionHint.innerHTML = lvl.hint;
+  writeHint(game, lvl);
+  game.els.btnHint.hidden = !hintButtonVisible(game, index);
+  if (game.els.activityCaption) {
+    game.els.activityCaption.textContent = captionText(game, index);
+    game.els.activityCaption.hidden = !game.activity;
+  }
   setHintVisible(game, false);
   game.tutor?.hush();
   cancelOperation(game);
@@ -321,7 +346,7 @@ function bindControls(game) {
 
   game.els.btnHint.addEventListener('click', () => {
     const curLvl = game.levels[game.currentLevelIndex];
-    game.els.instructionHint.innerHTML = curLvl.hint;
+    writeHint(game, curLvl);
     const next = !game.hintOpen;
     setHintVisible(game, next);
     if (next) {
@@ -495,12 +520,15 @@ function bindControls(game) {
   window.addEventListener('keydown', (e) => handleGameKeydown(game, e));
 }
 
-export function bootGame({ sound, particles }) {
+export function bootGame({ sound, particles, levels, activityName }) {
   const els = queryEls();
+  const activity = Array.isArray(levels);
   const game = {
     sound,
     particles,
-    levels: LEVELS.map((lvl) => ({
+    activity,
+    activityName: activity ? activityName ?? '' : '',
+    levels: (activity ? levels : LEVELS).map((lvl) => ({
       ...lvl,
       lhs: lvl.lhs.map((item) => ({ ...item })),
       rhs: lvl.rhs.map((item) => ({ ...item })),
@@ -535,6 +563,9 @@ export function bootGame({ sound, particles }) {
       loadLevel(game, index);
     },
   };
+
+  els.btnLevels.hidden = activity;
+  els.btnCustomEq.hidden = activity;
 
   bindControls(game);
   loadLevel(game, 0);

@@ -1871,3 +1871,199 @@ main {
     font-size: 26px;
   }
 }
+/* ==========================================================================
+   Editor de atividades (?editar)
+   ========================================================================== */
+
+.editor {
+  width: min(720px, calc(100% - 32px));
+  padding: 32px 0 48px;
+  position: relative;
+  z-index: 1;
+}
+
+.editor input {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.editor-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+  border-radius: var(--radius-xl);
+  padding: 30px 30px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.editor-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.editor-brand {
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.editor-title {
+  font-family: var(--font-main);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.editor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editor-label {
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.editor-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 1rem;
+  outline: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.editor-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.editor-input::placeholder {
+  color: var(--text-faint);
+}
+
+.editor-input-math {
+  font-family: var(--font-math);
+  font-weight: 600;
+}
+
+.editor-phases {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.editor-phase {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor-phase-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.editor-phase-number {
+  font-family: var(--font-equation);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.editor-phase-tools {
+  display: flex;
+  gap: 6px;
+}
+
+.editor-tool-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--glass-border);
+  background: #ffffff;
+  color: var(--text-secondary);
+  font-family: var(--font-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.editor-tool-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.editor-tool-btn:disabled,
+.editor .action-pill-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.editor .action-pill-btn:disabled:hover {
+  background: var(--btn-pill-bg);
+  transform: none;
+  box-shadow: var(--btn-pill-shadow);
+}
+
+.editor-add-btn {
+  align-self: flex-start;
+}
+
+.editor-link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.editor-link-row {
+  display: flex;
+  gap: 10px;
+}
+
+.editor-link-row .editor-input {
+  font-family: var(--font-math);
+  font-size: 0.85rem;
+}
+
+.editor-link-note {
+  min-height: 1.3em;
+  color: #b45309;
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .editor-card {
+    padding: 22px 18px;
+  }
+
+  .editor-link-row {
+    flex-direction: column;
+  }
+}
