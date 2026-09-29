@@ -256,6 +256,7 @@ export function loadLevel(game, index) {
   game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
   game.els.instructionHint.innerHTML = lvl.hint;
   setHintVisible(game, false);
+  game.tutor?.hush();
   cancelOperation(game);
 
   game.lhsItems = lvl.lhs.map((item) => ({
@@ -278,6 +279,7 @@ function bindControls(game) {
   game.els.btnSound.addEventListener('click', (e) => {
     const active = game.sound.toggle();
     e.currentTarget.textContent = active ? '🔊' : '🔇';
+    game.tutor?.setSoundEnabled(active);
   });
 
   game.els.btnLevels.addEventListener('click', () => {
@@ -304,6 +306,9 @@ function bindControls(game) {
       game.els.instructionHint.style.animation = 'none';
       void game.els.instructionHint.offsetWidth;
       game.els.instructionHint.style.animation = 'pulse-target 0.6s 2';
+      game.tutor?.speakHint(curLvl.hint);
+    } else {
+      game.tutor?.hush();
     }
   });
 

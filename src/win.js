@@ -29,7 +29,9 @@ export function triggerVictory(game, constTerm) {
     document.getElementById('btn-next-level-label').textContent = 'Próxima';
   }
 
-  game.els.winSolText.textContent = formatSolution(constTerm);
+  const solution = formatSolution(constTerm);
+  game.els.winSolText.textContent = solution;
+  game.tutor?.celebrate(solution);
   game.els.winModal.inert = false;
   game.els.winModal.classList.add('active');
 }

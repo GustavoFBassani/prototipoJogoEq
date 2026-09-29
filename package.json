@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@equalab/sound-engine": "*",
-    "canvas-confetti": "^1.9.4"
+    "canvas-confetti": "^1.9.4",
+    "clippyjs": "^0.1.0"
   }
 }
