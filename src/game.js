@@ -18,6 +18,7 @@ function queryEls() {
     levelsModal: document.getElementById('levels-modal'),
     levelsGrid: document.getElementById('levels-grid'),
     customModal: document.getElementById('custom-modal'),
+    creditsModal: document.getElementById('credits-modal'),
     opsPanel: document.querySelector('.operations-panel'),
     opNumberPanel: document.getElementById('op-number-panel'),
     opNumberValue: document.getElementById('op-number-value'),
@@ -32,6 +33,8 @@ function queryEls() {
     btnOpStepUp: document.getElementById('btn-op-step-up'),
     btnOpStepDown: document.getElementById('btn-op-step-down'),
     btnSound: document.getElementById('btn-sound'),
+    btnCredits: document.getElementById('btn-credits'),
+    btnCloseCredits: document.getElementById('btn-close-credits'),
     btnLevels: document.getElementById('btn-levels'),
     btnCloseLevels: document.getElementById('btn-close-levels'),
     btnReset: document.getElementById('btn-reset'),
@@ -183,7 +186,8 @@ function isBlockingModalOpen(game) {
   return (
     game.els.winModal.classList.contains('active') ||
     game.els.levelsModal?.classList.contains('active') ||
-    game.els.customModal?.classList.contains('active')
+    game.els.customModal?.classList.contains('active') ||
+    game.els.creditsModal?.classList.contains('active')
   );
 }
 
@@ -213,6 +217,8 @@ export function resetCurrentLevel(game) {
 }
 
 export function handleGameKeydown(game, e) {
+  if (game.els.creditsModal?.classList.contains('active')) return;
+
   if (e.key === 'Escape' && game.pendingOperation) {
     e.preventDefault();
     cancelOperation(game);
@@ -297,6 +303,16 @@ function bindControls(game) {
   game.els.btnCloseLevels.addEventListener('click', () => {
     game.els.levelsModal.classList.remove('active');
     game.els.levelsModal.inert = true;
+  });
+
+  game.els.btnCredits.addEventListener('click', () => {
+    game.els.creditsModal.inert = false;
+    game.els.creditsModal.classList.add('active');
+  });
+
+  game.els.btnCloseCredits.addEventListener('click', () => {
+    game.els.creditsModal.classList.remove('active');
+    game.els.creditsModal.inert = true;
   });
 
   game.els.btnReset.addEventListener('click', () => {

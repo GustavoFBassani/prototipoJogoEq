@@ -1441,6 +1441,10 @@ main {
   margin: 0 auto;
 }
 
+.credits-desc {
+  margin: 16px 0 24px;
+}
+
 .action-pill-btn {
   background: var(--btn-pill-bg);
   color: #ffffff;
