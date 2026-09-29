@@ -221,6 +221,25 @@ header {
 }
 
 .level-badge {
+
+  .win-performance {
+    margin: 0 0 12px;
+    color: var(--text-primary);
+    font-family: var(--font-math);
+    font-size: 0.9rem;
+  }
+
+  .tutorial-copy {
+    display: grid;
+    gap: 12px;
+    margin: 18px 0 24px;
+    color: var(--text-secondary);
+    text-align: left;
+  }
+
+  .tutorial-copy strong {
+    color: var(--text-primary);
+  }
   background: rgba(79, 139, 158, 0.12);
   border: 1px solid rgba(79, 139, 158, 0.35);
   color: #2c687a;

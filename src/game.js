@@ -1,5 +1,6 @@
 import { LEVELS } from './levels.js';
 import { renderAll, renderLevelsPicker } from './render.js';
+import { minimumSteps } from './algebra.js';
 import { applyOperationBothSides, applyNumberToBothSides, parseOpNumber, formatOpDisplay } from './operations.js';
 import { checkWinCondition } from './win.js';
 import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget, isResetKey, isNextLevelKey, hasKeyModifier } from './keys.js';
@@ -12,9 +13,13 @@ function queryEls() {
     mathRhs: document.getElementById('math-rhs'),
     mathFormulaWrapper: document.querySelector('.math-formula-wrapper'),
     levelLabel: document.getElementById('current-level-label'),
+    stepCount: document.getElementById('step-count'),
     instructionHint: document.getElementById('instruction-hint'),
     winModal: document.getElementById('win-modal'),
     winSolText: document.getElementById('win-sol-text'),
+    winPerformance: document.getElementById('win-performance'),
+    tutorialModal: document.getElementById('tutorial-modal'),
+    btnTutorialClose: document.getElementById('btn-tutorial-close'),
     levelsModal: document.getElementById('levels-modal'),
     levelsGrid: document.getElementById('levels-grid'),
     customModal: document.getElementById('custom-modal'),
@@ -177,7 +182,8 @@ function isBlockingModalOpen(game) {
   return (
     game.els.winModal.classList.contains('active') ||
     game.els.levelsModal?.classList.contains('active') ||
-    game.els.customModal?.classList.contains('active')
+    game.els.customModal?.classList.contains('active') ||
+    game.els.tutorialModal?.classList.contains('active')
   );
 }
 
@@ -207,6 +213,8 @@ export function resetCurrentLevel(game) {
 }
 
 export function handleGameKeydown(game, e) {
+  if (game.els.tutorialModal?.classList.contains('active')) return;
+
   if (e.key === 'Escape' && game.pendingOperation) {
     e.preventDefault();
     cancelOperation(game);
@@ -254,6 +262,8 @@ export function loadLevel(game, index) {
   const lvl = game.levels[index];
 
   game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
+  game.stepCount = 0;
+  game.minimumSteps = minimumSteps(lvl.lhs, lvl.rhs);
   game.els.instructionHint.innerHTML = lvl.hint;
   setHintVisible(game, false);
   cancelOperation(game);
@@ -275,6 +285,11 @@ export function loadLevel(game, index) {
 }
 
 function bindControls(game) {
+    game.els.btnTutorialClose.addEventListener('click', () => {
+      game.els.tutorialModal.classList.remove('active');
+      game.els.tutorialModal.inert = true;
+    });
+
   game.els.btnSound.addEventListener('click', (e) => {
     const active = game.sound.toggle();
     e.currentTarget.textContent = active ? '🔊' : '🔇';
@@ -479,6 +494,8 @@ export function bootGame({ sound, particles }) {
       rhs: lvl.rhs.map((item) => ({ ...item })),
     })),
     currentLevelIndex: 0,
+    stepCount: 0,
+    minimumSteps: 0,
     lhsItems: [],
     rhsItems: [],
     itemIdCounter: 1,
@@ -511,5 +528,7 @@ export function bootGame({ sound, particles }) {
 
   bindControls(game);
   loadLevel(game, 0);
+  els.tutorialModal.inert = false;
+  els.tutorialModal.classList.add('active');
   return game;
 }

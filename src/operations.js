@@ -15,6 +15,10 @@ function scaleItems(items, mutate) {
   });
 }
 
+function recordOperationStep(game) {
+  game.stepCount = (game.stepCount || 0) + 1;
+}
+
 export function parseOpNumber(raw) {
   if (raw == null) return null;
   let s = String(raw).trim().toLowerCase();
@@ -89,6 +93,7 @@ export function applyNumberToBothSides(game, operation, n, operand) {
     game.rhsItems = scaleItems(game.rhsItems, (num, den) =>
       multiplyRational(num, den, n)
     );
+    recordOperationStep(game);
     burstBothSides(game);
     game.renderAll();
     return true;
@@ -99,6 +104,7 @@ export function applyNumberToBothSides(game, operation, n, operand) {
     game.lhsItems = scaleItems(game.lhsItems, (num, den) =>
       divideRational(num, den, n)
     );
+    recordOperationStep(game);
     game.rhsItems = scaleItems(game.rhsItems, (num, den) =>
       divideRational(num, den, n)
     );
@@ -115,6 +121,7 @@ export function applyNumberToBothSides(game, operation, n, operand) {
     game.sound.playAddOperation();
     game.lhsItems.push({ id: game.itemIdCounter++, ...term });
     game.rhsItems.push({ id: game.itemIdCounter++, ...term });
+    recordOperationStep(game);
     game.renderAll();
     return true;
   }

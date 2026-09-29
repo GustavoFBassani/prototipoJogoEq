@@ -82,6 +82,30 @@ export function winningConstant(lhs, rhs) {
   return null;
 }
 
+export function minimumSteps(lhs, rhs) {
+  const totals = { variable: [0, 0], constant: [0, 0] };
+  for (const [side, items] of [lhs, rhs].entries()) {
+    for (const item of items) {
+      totals[item.kind][side] += item.num / item.den;
+    }
+  }
+
+  const [leftX, rightX] = totals.variable;
+  const [leftConstant, rightConstant] = totals.constant;
+  if (leftX === rightX) return 0;
+
+  const coefficientOnLeft = leftX - rightX;
+  const keepLeftCost =
+    (rightX !== 0 ? 1 : 0) +
+    (leftConstant !== 0 ? 1 : 0) +
+    (coefficientOnLeft !== 1 ? 1 : 0);
+  const keepRightCost =
+    (leftX !== 0 ? 1 : 0) +
+    (rightConstant !== 0 ? 1 : 0) +
+    (coefficientOnLeft !== -1 ? 1 : 0);
+  return Math.min(keepLeftCost, keepRightCost);
+}
+
 export function resolveDrop(source, target) {
   if (!source || !target || source.kind !== target.kind) return null;
   const sum = addRationals(source.num, source.den, target.num, target.den);

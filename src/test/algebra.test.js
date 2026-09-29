@@ -7,6 +7,7 @@ import {
   formatAlgebraicSide,
   formatSolution,
   winningConstant,
+    minimumSteps,
   resolveDrop,
 } from '../algebra.js';
 
@@ -112,6 +113,27 @@ describe('winningConstant', () => {
         ]
       )
     ).toBeNull();
+  });
+});
+
+describe('minimumSteps', () => {
+  it('counts the optimized operations needed to isolate x', () => {
+    expect(minimumSteps(
+      [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: 2, den: 1 }],
+      [{ kind: 'constant', num: 5, den: 1 }]
+    )).toBe(1);
+    expect(minimumSteps(
+      [{ kind: 'variable', num: 2, den: 1 }, { kind: 'constant', num: 1, den: 1 }],
+      [{ kind: 'variable', num: 1, den: 1 }, { kind: 'constant', num: 4, den: 1 }]
+    )).toBe(2);
+    expect(minimumSteps(
+      [{ kind: 'variable', num: 4, den: 1 }],
+      [{ kind: 'constant', num: -3, den: 1 }]
+    )).toBe(1);
+    expect(minimumSteps(
+      [{ kind: 'variable', num: -1, den: 1 }],
+      [{ kind: 'constant', num: 7, den: 1 }]
+    )).toBe(1);
   });
 });
 

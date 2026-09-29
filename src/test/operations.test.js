@@ -115,6 +115,7 @@ describe('applyNumberToBothSides', () => {
       [{ kind: 'constant', num: -3, den: 1 }]
     );
     expect(applyNumberToBothSides(game, Operation.DIVIDE, 4)).toBe(true);
+    expect(game.stepCount).toBe(1);
     expect(game.lhsItems[0]).toMatchObject({ kind: 'variable', num: 1, den: 1 });
     expect(game.rhsItems[0]).toMatchObject({ kind: 'constant', num: -3, den: 4 });
   });
@@ -135,6 +136,7 @@ describe('applyNumberToBothSides', () => {
       [{ kind: 'constant', num: 2, den: 1 }]
     );
     expect(applyNumberToBothSides(game, Operation.ADD, 3, Operand.NUMBER)).toBe(true);
+    expect(game.stepCount).toBe(1);
     expect(game.lhsItems).toHaveLength(2);
     expect(game.lhsItems[1]).toMatchObject({ kind: 'constant', num: 3, den: 1 });
     expect(game.rhsItems[1]).toMatchObject({ kind: 'constant', num: 3, den: 1 });

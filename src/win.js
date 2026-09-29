@@ -30,6 +30,11 @@ export function triggerVictory(game, constTerm) {
   }
 
   game.els.winSolText.textContent = formatSolution(constTerm);
+  const score = game.stepCount === 0
+    ? (game.minimumSteps === 0 ? 1000 : 0)
+    : Math.round((game.minimumSteps / game.stepCount) * 1000);
+  game.els.winPerformance.textContent =
+    `${game.stepCount} ${game.stepCount === 1 ? 'passo' : 'passos'} · mínimo ${game.minimumSteps} · ${score} pontos`;
   game.els.winModal.inert = false;
   game.els.winModal.classList.add('active');
 }
