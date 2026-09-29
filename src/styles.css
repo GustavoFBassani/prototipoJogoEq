@@ -441,9 +441,7 @@ main {
   background: #fef9c3;
   border: 1px solid #fef08a;
   box-shadow: 0 2px 8px rgba(234, 179, 8, 0.12);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   text-align: center;
 }
 
