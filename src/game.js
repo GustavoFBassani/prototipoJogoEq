@@ -65,8 +65,14 @@ function selectedOperand(game) {
 export function stepOpValue(game, delta) {
   const operand = selectedOperand(game);
   const current = parseOpNumber(game.els.opNumberValue.value) ?? 1;
-  const magnitude = Math.abs(current);
-  const next = Math.max(1, magnitude + delta);
+  let next;
+  if (game.pendingOperation === Operation.MULTIPLY) {
+    next = current + delta;
+    if (next === 0) next = delta < 0 ? -1 : 1;
+  } else {
+    const magnitude = Math.abs(current);
+    next = Math.max(1, magnitude + delta);
+  }
   game.els.opNumberValue.value = formatOpDisplay(next, operand, game.pendingOperation);
   showOpNote(game, '');
 }
