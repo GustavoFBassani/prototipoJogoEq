@@ -88,18 +88,19 @@ function triggerOpVisualFeedback(operation) {
   setTimeout(() => btn.classList.remove('is-pressed'), 140);
 }
 
-function beginOperation(game, operation) {
+export function beginOperation(game, operation) {
   triggerOpVisualFeedback(operation);
   game.pendingOperation = operation;
   game.els.opsPanel.classList.add('is-asking-number');
   game.els.opNumberPanel.hidden = false;
-  const opsHeader = document.querySelector('.ops-header-area');
+  const opsHeader = typeof document === 'undefined' ? null : document.querySelector('.ops-header-area');
   if (opsHeader) opsHeader.classList.add('is-hidden');
 
   const needsOperand = operation === Operation.ADD || operation === Operation.SUBTRACT;
-  game.els.operandSelector.hidden = !needsOperand;
+  game.els.operandSelector.hidden = false;
+  game.els.operandSelector.classList.toggle('is-number-only', !needsOperand);
+  game.els.operandLegend.textContent = mapOperationToTextContent(operation);
   if (needsOperand) {
-    game.els.operandLegend.textContent = operation === Operation.ADD ? 'Somar o quê?' : 'Subtrair o quê?';
     game.els.operandNumber.checked = true;
     game.els.opNumberValue.value = formatOpDisplay(1, Operand.NUMBER, operation);
   } else {
@@ -109,6 +110,21 @@ function beginOperation(game, operation) {
   showOpNote(game, '');
   game.els.opNumberValue.focus();
   game.els.opNumberValue.select();
+}
+
+function mapOperationToTextContent (operation) {
+  switch (operation) {
+    case Operation.ADD:
+      return 'Somar o quê?';
+    case Operation.SUBTRACT:
+      return 'Subtrair o quê?';
+    case Operation.MULTIPLY:
+      return 'Multiplicar por?';
+    case Operation.DIVIDE:
+      return 'Dividir por?';
+    default:
+      return '';
+  }
 }
 
 function cancelOperation(game) {

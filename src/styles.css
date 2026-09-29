@@ -1086,6 +1086,10 @@ main {
   display: none;
 }
 
+.operand-selector.is-number-only label {
+  display: none;
+}
+
 .operand-selector legend {
   width: 100%;
   padding: 0;

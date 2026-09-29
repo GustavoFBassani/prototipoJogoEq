@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Operation } from '../keys.js';
-import { advanceFromWinModal, handleGameKeydown, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
+import { advanceFromWinModal, beginOperation, handleGameKeydown, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
 
 function mockModal(active) {
   const classes = new Set(active ? ['active'] : []);
@@ -55,6 +55,44 @@ function keyEvent(key, target, extras = {}) {
     ...extras,
   };
 }
+
+function mockOpGame() {
+  const classes = new Set();
+  return {
+    pendingOperation: null,
+    els: {
+      opsPanel: { classList: { add: vi.fn(), remove: vi.fn() } },
+      opNumberPanel: { hidden: true },
+      operandSelector: {
+        hidden: true,
+        classList: {
+          toggle: (name, on) => (on ? classes.add(name) : classes.delete(name)),
+          contains: (name) => classes.has(name),
+        },
+      },
+      operandLegend: { textContent: '' },
+      operandNumber: { checked: false },
+      opNumberValue: { value: '', focus: vi.fn(), select: vi.fn() },
+      opNumberNote: { hidden: true, textContent: '' },
+    },
+  };
+}
+
+describe('beginOperation', () => {
+  it.each([
+    [Operation.ADD, 'Somar o quê?', '+1', false],
+    [Operation.SUBTRACT, 'Subtrair o quê?', '-1', false],
+    [Operation.MULTIPLY, 'Multiplicar por?', '×2', true],
+    [Operation.DIVIDE, 'Dividir por?', '÷2', true],
+  ])('sets the prompt for %s', (operation, text, value, numberOnly) => {
+    const game = mockOpGame();
+    beginOperation(game, operation);
+    expect(game.els.operandLegend.textContent).toBe(text);
+    expect(game.els.opNumberValue.value).toBe(value);
+    expect(game.els.operandSelector.hidden).toBe(false);
+    expect(game.els.operandSelector.classList.contains('is-number-only')).toBe(numberOnly);
+  });
+});
 
 describe('advanceFromWinModal', () => {
   it('does not change level when the win modal is closed', () => {
