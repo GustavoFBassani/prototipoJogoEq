@@ -142,7 +142,7 @@ body::before {
 }
 
 .app {
-  width: min(960px, calc(100% - 32px));
+  width: min(1200px, calc(100% - 48px));
   min-height: calc(100dvh - 64px);
   display: flex;
   flex-direction: column;
@@ -150,6 +150,10 @@ body::before {
   padding-bottom: 28px;
   position: relative;
   z-index: 1;
+}
+
+.orientation-notice {
+  display: none;
 }
 
 #particle-canvas {
@@ -183,7 +187,7 @@ header {
 }
 
 .header-inner {
-  width: min(960px, calc(100% - 32px));
+  width: min(1200px, calc(100% - 48px));
   margin: 0 auto;
   padding: 12px 0;
   display: flex;
@@ -270,7 +274,7 @@ header {
 
 main {
   width: 100%;
-  padding: 56px 0 0;
+  padding: clamp(18px, 5vh, 56px) 0 0;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -468,10 +472,11 @@ main {
    ========================================================================== */
 
 .containers-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 50px minmax(0, 1fr);
   justify-content: center;
   align-items: stretch;
-  gap: 24px;
+  gap: 16px;
   width: 100%;
   position: relative;
 }
@@ -485,11 +490,9 @@ main {
   border-radius: var(--radius-xl);
   box-shadow: var(--glass-shadow);
   padding: 18px;
-  min-width: 370px;
-  width: 395px;
-  flex: 1 1 370px;
-  max-width: 440px;
-  min-height: 285px;
+  min-width: 0;
+  width: 100%;
+  min-height: clamp(220px, 30vh, 285px);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -1793,13 +1796,18 @@ main {
 @media (max-width: 768px) {
   .app {
     width: 100%;
-    padding: 0 16px 24px;
+    padding: 0 16px 18px;
+  }
+
+  main {
+    padding-top: 18px;
   }
 
   .containers-grid {
+    display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
   }
 
   .containers-grid::before {
@@ -1809,8 +1817,15 @@ main {
   .equation-container {
     min-width: 0;
     width: min(390px, 100%);
-    min-height: 250px;
+    min-height: 200px;
     flex: 0 0 auto;
+    padding: 12px;
+  }
+
+  .items-dropzone {
+    min-height: 165px;
+    gap: 8px;
+    padding: 10px;
   }
 
   .scale-center-divider {
@@ -1819,9 +1834,9 @@ main {
   }
 
   .equal-circle {
-    width: 42px;
-    height: 42px;
-    font-size: 20px;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
   }
 
   .math-formula-wrapper {
@@ -1844,9 +1859,10 @@ main {
   }
 
   .game-token {
-    min-width: 56px;
-    height: 56px;
-    font-size: 18px;
+    min-width: 48px;
+    height: 48px;
+    padding: 0 12px;
+    font-size: 16px;
   }
 
   .operations-panel {
@@ -1856,6 +1872,7 @@ main {
 
   .ops-title {
     font-size: 1.2rem;
+    display: none;
   }
 
   .ops-buttons-grid {
@@ -1869,6 +1886,340 @@ main {
 
   .op-symbol {
     font-size: 26px;
+  }
+
+  .header-inner {
+    width: calc(100% - 24px);
+    padding: 8px 0;
+  }
+
+  .header-controls {
+    gap: 6px;
+  }
+
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .level-badge {
+    padding: 5px 8px;
+    font-size: 0.75rem;
+  }
+
+  .ops-section-container {
+    gap: 10px;
+  }
+
+  .footer-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer-actions .action-pill-btn {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) and (hover: none) {
+  body {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  header {
+    height: 40px;
+  }
+
+  .header-inner {
+    height: 100%;
+    padding: 2px 0;
+  }
+
+  .app {
+    width: 100%;
+    height: calc(100dvh - 40px);
+    min-height: 0;
+    padding: 0 12px 4px;
+  }
+
+  main {
+    min-height: 0;
+    padding-top: 4px;
+  }
+
+  .playfield {
+    min-height: 0;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .board {
+    min-height: 0;
+    gap: 4px;
+  }
+
+  .equation-display-card {
+    gap: 0;
+    padding: 0;
+  }
+
+  .hint-slot {
+    min-height: 0;
+    margin: 0;
+  }
+
+  .containers-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr);
+    align-items: stretch;
+    flex: 1;
+    min-height: 0;
+    gap: 8px;
+  }
+
+  .equation-container {
+    width: 100%;
+    height: clamp(88px, 25dvh, 120px);
+    min-height: 0;
+    padding: 5px;
+  }
+
+  .items-dropzone {
+    min-height: 0;
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .game-token {
+    min-width: 44px;
+    height: 44px;
+    padding: 0 10px;
+    font-size: 15px;
+  }
+
+  .equal-circle {
+    width: 32px;
+    height: 32px;
+  }
+
+  .equation-display-card {
+    gap: 2px;
+    padding-top: 0;
+  }
+
+  .math-formula-wrapper {
+    gap: 8px;
+    padding: 3px 12px;
+    font-size: 21px;
+  }
+
+  .hint-slot {
+    min-height: 0;
+  }
+
+  .ops-section-container {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .ops-title {
+    font-size: 0.9rem;
+    display: none;
+  }
+
+  .ops-speech-bubble {
+    display: none;
+  }
+
+  .operations-panel {
+    padding: 5px 8px;
+    gap: 6px;
+  }
+
+  .op-btn {
+    height: 34px;
+  }
+
+  .op-symbol {
+    font-size: 20px;
+  }
+
+  .footer-actions {
+    gap: 5px;
+    flex-shrink: 0;
+  }
+
+  .footer-actions .action-pill-btn {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 600px) and (orientation: portrait) and (pointer: coarse) and (hover: none) {
+  body {
+    overflow: hidden;
+  }
+
+  .orientation-notice {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    text-align: center;
+  }
+
+  .orientation-device {
+    width: 40px;
+    height: 68px;
+    border: 3px solid var(--accent);
+    border-radius: 8px;
+    position: relative;
+    animation: rotate-device 1.6s ease-in-out infinite alternate;
+  }
+
+  .orientation-device::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 10px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--accent);
+    transform: translateX(-50%);
+  }
+
+  .orientation-notice h2 {
+    font-family: var(--font-equation);
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .orientation-notice p {
+    color: var(--text-secondary);
+  }
+}
+
+@keyframes rotate-device {
+  to {
+    transform: rotate(90deg);
+  }
+}
+
+@media (max-width: 1024px) and (pointer: coarse) and (hover: none) {
+  .modal-backdrop {
+    height: 100dvh;
+    padding: 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .win-card {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    padding: 22px 18px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .win-trophy {
+    font-size: 40px;
+    margin-bottom: 8px;
+  }
+
+  .win-title {
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+  }
+
+  .win-equation {
+    font-size: 22px;
+    padding: 8px 18px;
+    margin: 10px 0;
+  }
+
+  .win-desc {
+    margin-bottom: 16px;
+  }
+
+  .btn-next-level {
+    padding: 10px 18px;
+  }
+
+  .level-picker-grid {
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    max-height: min(240px, 35dvh);
+    gap: 6px;
+    margin: 12px 0 16px;
+  }
+
+  .lvl-btn {
+    padding: 8px;
+  }
+
+  .modal-close-btn {
+    margin-top: 8px;
+  }
+
+  .custom-inputs-row {
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) and (pointer: coarse) and (hover: none) {
+  .modal-backdrop {
+    padding: 8px;
+  }
+
+  .win-card {
+    max-height: calc(100dvh - 16px);
+    padding: 12px 18px;
+  }
+
+  .win-trophy {
+    font-size: 32px;
+    margin-bottom: 4px;
+  }
+
+  .win-title {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+  }
+
+  .win-equation {
+    font-size: 20px;
+    padding: 6px 14px;
+    margin: 6px 0;
+  }
+
+  .win-desc {
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+
+  .btn-next-level {
+    padding: 7px 16px;
+  }
+
+  .level-picker-grid {
+    max-height: min(170px, 30dvh);
+    margin: 8px 0 10px;
+  }
+
+  .modal-close-btn {
+    margin-top: 6px;
   }
 }
 /* ==========================================================================

@@ -77,6 +77,15 @@ function showOpNote(game, text) {
   game.els.opNumberNote.textContent = text || '';
 }
 
+function focusOperationInput(game, selectValue = false) {
+  const isTouchDevice = typeof window !== 'undefined'
+    && window.matchMedia?.('(pointer: coarse) and (hover: none)').matches;
+  if (isTouchDevice) return;
+
+  game.els.opNumberValue.focus();
+  if (selectValue) game.els.opNumberValue.select();
+}
+
 function selectedOperand(game) {
   if (game.els.operandSelector?.hidden) return Operand.NUMBER;
   const raw = game.els.opNumberValue?.value?.trim().toLowerCase() || '';
@@ -137,8 +146,7 @@ export function beginOperation(game, operation) {
   }
 
   showOpNote(game, '');
-  game.els.opNumberValue.focus();
-  game.els.opNumberValue.select();
+  focusOperationInput(game, true);
 }
 
 function mapOperationToTextContent (operation) {
@@ -181,7 +189,7 @@ function confirmOperation(game) {
     raw.includes('x')
   ) {
     showOpNote(game, 'Multiplicação e divisão aceitam apenas números.');
-    game.els.opNumberValue.focus();
+    focusOperationInput(game);
     return;
   }
 
@@ -195,7 +203,7 @@ function confirmOperation(game) {
         ? 'Zero desequilibra a balança. Escolhe outro número.'
         : 'Escolhe um valor válido diferente de zero.'
     );
-    game.els.opNumberValue.focus();
+    focusOperationInput(game);
     return;
   }
   const ok = applyNumberToBothSides(game, operation, n, operand);
@@ -462,7 +470,7 @@ function bindControls(game) {
     game.els.btnOpStepUp.addEventListener('click', (e) => {
       e.preventDefault();
       stepOpValue(game, 1);
-      game.els.opNumberValue.focus();
+      focusOperationInput(game);
     });
   }
 
@@ -470,7 +478,7 @@ function bindControls(game) {
     game.els.btnOpStepDown.addEventListener('click', (e) => {
       e.preventDefault();
       stepOpValue(game, -1);
-      game.els.opNumberValue.focus();
+      focusOperationInput(game);
     });
   }
 

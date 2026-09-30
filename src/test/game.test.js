@@ -89,8 +89,23 @@ describe('beginOperation', () => {
     beginOperation(game, operation);
     expect(game.els.operandLegend.textContent).toBe(text);
     expect(game.els.opNumberValue.value).toBe(value);
+    expect(game.els.opNumberValue.focus).toHaveBeenCalledOnce();
+    expect(game.els.opNumberValue.select).toHaveBeenCalledOnce();
     expect(game.els.operandSelector.hidden).toBe(false);
     expect(game.els.operandSelector.classList.contains('is-number-only')).toBe(numberOnly);
+  });
+
+  it('does not focus the operation field automatically on touch devices', () => {
+    vi.stubGlobal('window', {
+      matchMedia: vi.fn(() => ({ matches: true })),
+    });
+    const game = mockOpGame();
+
+    beginOperation(game, Operation.ADD);
+
+    expect(game.els.opNumberValue.focus).not.toHaveBeenCalled();
+    expect(game.els.opNumberValue.select).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });
 

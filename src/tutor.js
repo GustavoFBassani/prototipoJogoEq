@@ -57,7 +57,55 @@ function interrupt(agent) {
   }
 }
 
+function enablePointerDrag(agent) {
+  const element = agent._el;
+  if (!element?.addEventListener) return;
+
+  element.style.touchAction = 'none';
+  let activePointer = null;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  element.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 && event.pointerType !== 'touch') return;
+    event.preventDefault();
+    activePointer = event.pointerId;
+    const bounds = element.getBoundingClientRect();
+    offsetX = event.clientX - bounds.left;
+    offsetY = event.clientY - bounds.top;
+    element.setPointerCapture?.(activePointer);
+    agent.pause();
+    agent._balloon?.hide(true);
+  });
+
+  element.addEventListener('pointermove', (event) => {
+    if (event.pointerId !== activePointer) return;
+    event.preventDefault();
+    const margin = 5;
+    const maxX = Math.max(margin, window.innerWidth - element.offsetWidth - margin);
+    const maxY = Math.max(margin, window.innerHeight - element.offsetHeight - margin);
+    const x = Math.max(margin, Math.min(event.clientX - offsetX, maxX));
+    const y = Math.max(margin, Math.min(event.clientY - offsetY, maxY));
+    element.style.left = `${x}px`;
+    element.style.top = `${y}px`;
+  });
+
+  const finishDrag = (event) => {
+    if (event.pointerId !== activePointer) return;
+    activePointer = null;
+    agent._balloon?.show();
+    agent.reposition();
+    agent.resume();
+  };
+
+  element.addEventListener('pointerup', finishDrag);
+  element.addEventListener('pointercancel', finishDrag);
+  element.addEventListener('lostpointercapture', finishDrag);
+}
+
 export function createTutor(agent) {
+  enablePointerDrag(agent);
+
   return {
     place(viewportWidth, viewportHeight, board) {
       const frame = agent._animator?._data?.framesize?.[0] ?? 80;

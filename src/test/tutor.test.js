@@ -4,9 +4,18 @@ import { cornerPosition, createTutor, plainHint, roverSpot, TUTORIAL_STEPS } fro
 
 function fakeAgent(anims = ['Greet', 'GestureLeft', 'Thinking', 'GetAttention', 'Acknowledge', 'Congratulate']) {
   const calls = [];
+  const listeners = new Map();
   return {
     calls,
-    _el: { style: {} },
+    _el: {
+      style: {},
+      offsetWidth: 80,
+      offsetHeight: 80,
+      addEventListener: vi.fn((type, listener) => listeners.set(type, listener)),
+      getBoundingClientRect: () => ({ left: 30, top: 40 }),
+      setPointerCapture: vi.fn(),
+      listeners,
+    },
     _animator: {
       _data: { framesize: [80, 80] },
       _sounds: { bark: { muted: false } },
@@ -16,6 +25,7 @@ function fakeAgent(anims = ['Greet', 'GestureLeft', 'Thinking', 'GetAttention', 
       _hiding: 42,
       _balloon: { style: {} },
       _content: { style: {} },
+      show: vi.fn(),
     },
     hasAnimation(name) {
       return anims.includes(name);
@@ -35,6 +45,12 @@ function fakeAgent(anims = ['Greet', 'GestureLeft', 'Thinking', 'GetAttention', 
     },
     reposition() {
       calls.push(['reposition']);
+    },
+    pause() {
+      calls.push(['pause']);
+    },
+    resume() {
+      calls.push(['resume']);
     },
   };
 }
@@ -86,6 +102,36 @@ describe('TUTORIAL_STEPS', () => {
 });
 
 describe('createTutor', () => {
+  it('supports dragging Rover with pointer input and clamps him to the viewport', () => {
+    const agent = fakeAgent();
+    const tutor = createTutor(agent);
+    const pointerDown = agent._el.listeners.get('pointerdown');
+    const pointerMove = agent._el.listeners.get('pointermove');
+    const pointerUp = agent._el.listeners.get('pointerup');
+    const preventDefault = vi.fn();
+    vi.stubGlobal('window', { innerWidth: 320, innerHeight: 240 });
+
+    pointerDown({
+      button: 0,
+      pointerId: 7,
+      pointerType: 'touch',
+      clientX: 40,
+      clientY: 50,
+      preventDefault,
+    });
+    pointerMove({ pointerId: 7, clientX: 300, clientY: 220, preventDefault });
+    pointerUp({ pointerId: 7 });
+
+    expect(agent._el.style.touchAction).toBe('none');
+    expect(agent._el.style.left).toBe('235px');
+    expect(agent._el.style.top).toBe('155px');
+    expect(agent.calls).toContainEqual(['pause']);
+    expect(agent.calls).toContainEqual(['resume']);
+    expect(agent._balloon.show).toHaveBeenCalledOnce();
+
+    vi.unstubAllGlobals();
+  });
+
   it('places Rover and plays the tutorial in order', () => {
     const agent = fakeAgent();
     const tutor = createTutor(agent);
