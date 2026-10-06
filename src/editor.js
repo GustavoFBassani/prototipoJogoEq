@@ -15,7 +15,7 @@ export const STORAGE_KEY = 'equalab.editorDraft';
 export const UNRECOGNIZED_NOTE = 'Não reconheci esse link.';
 
 export function blankPhase() {
-  return { title: '', hint: '', equation: '' };
+  return { title: '', hint: '', equation: '', minSteps: '' };
 }
 
 export function blankDraft() {
@@ -25,17 +25,18 @@ export function blankDraft() {
 export function normalizeDraft(draft) {
   const phases = draft.phases
     .slice(0, MAX_PHASES)
-    .map(({ title, hint, equation }) => ({ title, hint, equation }));
+    .map(({ title, hint, equation, minSteps }) => ({ title, hint, equation, minSteps: minSteps ?? '' }));
   return { v: 1, name: draft.name, phases: phases.length > 0 ? phases : [blankPhase()] };
 }
 
 export function draftFromActivity(activity) {
   return normalizeDraft({
     name: activity.name,
-    phases: activity.phases.map(({ title, hint, lhs, rhs }) => ({
+    phases: activity.phases.map(({ title, hint, lhs, rhs, minSteps }) => ({
       title,
       hint,
       equation: `${formatAlgebraicSide(lhs)} = ${formatAlgebraicSide(rhs)}`,
+      minSteps: minSteps ?? '',
     })),
   });
 }
@@ -132,6 +133,7 @@ const PHASE_FIELDS = [
   { field: 'title', label: 'Título', placeholder: 'Ex.: Somando dos dois lados' },
   { field: 'equation', label: 'Equação', placeholder: '2x + 3 = 11', mono: true },
   { field: 'hint', label: 'Dica (opcional)', placeholder: 'Ex.: Comece tirando o 3 dos dois lados' },
+  { field: 'minSteps', label: 'Passos otimizados (opcional)', placeholder: 'Ex.: 4', type: 'number', min: '1' },
 ];
 
 const PHASE_TOOLS = [
@@ -211,18 +213,19 @@ export function mountEditor({ root, win = globalThis }) {
     head.append(number, tools);
     item.append(head);
 
-    for (const { field, label, placeholder, mono } of PHASE_FIELDS) {
+    for (const { field, label, placeholder, mono, type, min } of PHASE_FIELDS) {
       const wrapper = doc.createElement('label');
       wrapper.className = 'editor-field';
       const caption = doc.createElement('span');
       caption.className = 'editor-label';
       caption.textContent = label;
       const input = doc.createElement('input');
-      input.type = 'text';
+      input.type = type ?? 'text';
       input.className = mono ? 'editor-input editor-input-math' : 'editor-input';
       input.autocomplete = 'off';
       input.spellcheck = !mono;
       input.placeholder = placeholder;
+      if (min) input.min = min;
       input.value = phase[field];
       input.dataset.field = field;
       input.dataset.index = String(index);

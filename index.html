@@ -23,15 +23,18 @@
         <div>
           <h1 class="logo-title">IGUALAÍ</h1>
           <p id="activity-caption" hidden></p>
+          <p class="steps-badge" id="step-count" aria-live="polite" aria-label="Passos utilizados">
+            <span>Passos <span id="step-value">0/4</span></span>
+            <span class="score-count">⭐ <span id="score-count">100</span> pts</span>
+          </p>
         </div>
       </div>
       <div class="header-controls">
-        <div class="level-badge" title="Fase e passos aplicados">
+        <div class="level-badge" title="Fase">
           <span id="current-level-label">1/14</span>
-          <span aria-hidden="true">·</span>
-          <span id="step-count" aria-label="Passos aplicados">0</span>
         </div>
         <button type="button" class="icon-btn" id="btn-levels" title="Escolher Fase">🗺️</button>
+        <button type="button" class="icon-btn" id="btn-tutorial" title="Ver tutorial" aria-label="Ver tutorial">?</button>
         <button type="button" class="icon-btn" id="btn-sound" title="Alternar Som">🔊</button>
         <button type="button" class="icon-btn" id="btn-credits" title="Sobre o jogo" aria-label="Sobre o jogo" aria-haspopup="dialog" aria-controls="credits-modal">🎓</button>
       </div>
@@ -195,25 +198,13 @@
       <div class="win-trophy">🏆</div>
       <h2 class="win-title">Resolvida</h2>
       <div class="win-equation" id="win-sol-text">x = 3</div>
-      <p class="win-performance" id="win-performance"></p>
+
       <p class="win-desc" id="win-message">O x ficou sozinho.</p>
+      <p class="win-score" id="win-score" aria-live="polite"></p>
       <button type="button" class="btn-next-level" id="btn-next-level" aria-keyshortcuts="Enter">
         <span id="btn-next-level-label">Próxima</span>
         <kbd>Enter</kbd>
       </button>
-    </div>
-  </div>
-
-  <div class="modal-backdrop" id="tutorial-modal" inert role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
-    <div class="win-card tutorial-card">
-      <div class="win-trophy" aria-hidden="true">⚖️</div>
-      <h2 class="win-title" id="tutorial-title">Como jogar</h2>
-      <div class="tutorial-copy">
-        <p>Aplique a mesma operação aos dois lados para deixar o <strong>x</strong> sozinho.</p>
-        <p>Use <strong>+</strong>, <strong>−</strong>, <strong>×</strong> ou <strong>÷</strong> e confirme o valor. Arraste fichas iguais para combinar ou cancelar.</p>
-        <p>Passos contam operações confirmadas. Tente resolver usando o mínimo otimizado para ganhar até 1000 pontos.</p>
-      </div>
-      <button type="button" class="btn-next-level" id="btn-tutorial-close">Começar</button>
     </div>
   </div>
 
@@ -246,6 +237,19 @@
       <p class="win-desc credits-desc">Jogo desenvolvido para a disciplina Computação e Práticas Extensionistas (2026/2) do IFRS, pelos estudantes: Carlos Dartora, Christopher Marques, Gustavo Bassani e Maycke Young</p>
       <button type="button" class="btn-next-level" id="btn-close-credits">OK</button>
     </div>
+  </div>
+
+  <div class="modal-backdrop" id="tutorial-modal" inert>
+    <section class="win-card tutorial-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+      <h2 class="win-title" id="tutorial-title">Como jogar</h2>
+      <p class="tutorial-progress" id="tutorial-progress" aria-live="polite"></p>
+      <p class="tutorial-step-text" id="tutorial-step-text"></p>
+      <div class="tutorial-navigation">
+        <button type="button" class="action-pill-btn" id="btn-previous-tutorial">Anterior</button>
+        <button type="button" class="btn-next-level" id="btn-next-tutorial">Próximo</button>
+        <button type="button" class="btn-next-level" id="btn-close-tutorial">Começar</button>
+      </div>
+    </section>
   </div>
 
   <script type="module" src="/src/main.js"></script>

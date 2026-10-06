@@ -1,14 +1,6 @@
-export const TUTORIAL_STEPS = [
-  { animation: 'Greet', text: 'Oi! Sou o Rover. Vou te mostrar como jogar.' },
-  { animation: 'GestureLeft', text: 'A equação é uma balança. O lado azul vale o mesmo que o roxo.' },
-  { animation: 'GestureLeft', text: 'Os botões aplicam a mesma conta nos dois lados.' },
-  { animation: 'GestureLeft', text: 'Arraste peças iguais no mesmo prato. Elas se fundem.' },
-  { animation: 'Thinking', text: 'A fase acaba quando o x fica sozinho.' },
-  { animation: 'GetAttention', text: 'Aperta Dica se travar. Eu falo o próximo passo.' },
-  { animation: 'Acknowledge', text: 'Se eu tapar alguma coisa, me arrasta.' },
-];
+import { TUTORIAL_STEPS } from './game.js';
 
-const TUTORIAL_SEEN = 'equalab-rover-tutorial';
+export { TUTORIAL_STEPS };
 
 export function plainHint(html) {
   return String(html ?? '')
@@ -105,6 +97,10 @@ function enablePointerDrag(agent) {
 
 export function createTutor(agent) {
   enablePointerDrag(agent);
+  if (agent._balloon) {
+    agent._balloon.WORD_SPEAK_TIME = 350;
+    agent._balloon.CLOSE_BALLOON_DELAY = 6000;
+  }
 
   return {
     place(viewportWidth, viewportHeight, board) {
@@ -129,17 +125,16 @@ export function createTutor(agent) {
         content.style.lineHeight = '1.35';
       }
     },
-    start() {
-      const [hello, ...rest] = TUTORIAL_STEPS;
-      agent.speak(hello.text);
-      playIf(agent, hello.animation, 1200);
-      for (const step of rest) agent.speak(step.text);
-    },
     speakHint(html) {
-      const text = plainHint(html);
-      if (!text) return;
       interrupt(agent);
-      agent.speak(text, { hold: true });
+      const hint = plainHint(html);
+      if (hint) agent.speak(`Dica: ${hint}`);
+    },
+    explainCustomEquation() {
+      interrupt(agent);
+      agent.speak(
+        'Na equação livre, aplique a mesma operação nos dois lados. Arraste termos iguais para juntar ou cancelar, até deixar o x sozinho.',
+      );
     },
     celebrate(solution) {
       interrupt(agent);
@@ -159,15 +154,19 @@ export function createTutor(agent) {
   };
 }
 
-export async function attachTutor(game, storage = sessionStorage) {
+export async function attachTutor(game) {
   let pendingHint = null;
   let pendingWin = null;
+  let pendingCustomExplanation = false;
   game.tutor = {
     speakHint(html) {
       pendingHint = html;
     },
     celebrate(solution) {
       pendingWin = solution;
+    },
+    explainCustomEquation() {
+      pendingCustomExplanation = true;
     },
     hush() {
       pendingHint = null;
@@ -193,13 +192,7 @@ export async function attachTutor(game, storage = sessionStorage) {
     tutor.celebrate(pendingWin);
     return;
   }
-
-  let seen = false;
-  try {
-    seen = storage.getItem(TUTORIAL_SEEN) === '1';
-    if (!seen) storage.setItem(TUTORIAL_SEEN, '1');
-  } catch {
-    seen = false;
+  if (pendingCustomExplanation) {
+    tutor.explainCustomEquation();
   }
-  if (!seen) tutor.start();
 }

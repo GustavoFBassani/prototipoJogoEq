@@ -2,8 +2,35 @@ import { LEVELS } from './levels.js';
 import { renderAll, renderLevelsPicker } from './render.js';
 import { minimumSteps } from './algebra.js';
 import { applyOperationBothSides, applyNumberToBothSides, parseOpNumber, formatOpDisplay } from './operations.js';
-import { checkWinCondition } from './win.js';
+import { checkWinCondition, scoreForSteps } from './win.js';
 import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTarget, isResetKey, isNextLevelKey, hasKeyModifier } from './keys.js';
+
+export const TUTORIAL_STEPS = [
+  {
+    text: 'A equação funciona como uma balança: os dois lados precisam continuar com o mesmo valor.',
+    target: '.math-formula-wrapper',
+  },
+  {
+    text: 'Escolha aqui uma operação para aplicar a mesma conta nos dois lados.',
+    target: '.operations-panel',
+  },
+  {
+    text: 'As peças ficam nestes pratos. Arraste peças iguais no mesmo lado para juntá-las ou cancelá-las.',
+    target: '.containers-grid',
+  },
+  {
+    text: 'O objetivo é resolver até que o x fique sozinho.',
+    target: '.math-formula-wrapper',
+  },
+  {
+    text: 'Acompanhe aqui os passos usados e os pontos. Quanto menos passos, maior a pontuação.',
+    target: '#step-count',
+  },
+  {
+    text: 'Se precisar, toque em Dica para ver uma orientação da fase.',
+    target: '#btn-hint',
+  },
+];
 
 function queryEls() {
   return {
@@ -17,9 +44,13 @@ function queryEls() {
     instructionHint: document.getElementById('instruction-hint'),
     winModal: document.getElementById('win-modal'),
     winSolText: document.getElementById('win-sol-text'),
-    winPerformance: document.getElementById('win-performance'),
+    winScore: document.getElementById('win-score'),
     tutorialModal: document.getElementById('tutorial-modal'),
-    btnTutorialClose: document.getElementById('btn-tutorial-close'),
+    tutorialProgress: document.getElementById('tutorial-progress'),
+    tutorialStepText: document.getElementById('tutorial-step-text'),
+    btnPreviousTutorial: document.getElementById('btn-previous-tutorial'),
+    btnNextTutorial: document.getElementById('btn-next-tutorial'),
+    btnCloseTutorial: document.getElementById('btn-close-tutorial'),
     levelsModal: document.getElementById('levels-modal'),
     levelsGrid: document.getElementById('levels-grid'),
     customModal: document.getElementById('custom-modal'),
@@ -38,6 +69,7 @@ function queryEls() {
     btnOpStepUp: document.getElementById('btn-op-step-up'),
     btnOpStepDown: document.getElementById('btn-op-step-down'),
     btnSound: document.getElementById('btn-sound'),
+    btnTutorial: document.getElementById('btn-tutorial'),
     btnCredits: document.getElementById('btn-credits'),
     btnCloseCredits: document.getElementById('btn-close-credits'),
     btnLevels: document.getElementById('btn-levels'),
@@ -49,6 +81,8 @@ function queryEls() {
     btnCloseCustom: document.getElementById('btn-close-custom'),
     btnStartCustom: document.getElementById('btn-start-custom'),
     activityCaption: document.getElementById('activity-caption'),
+    stepValue: document.getElementById('step-value'),
+    scoreCount: document.getElementById('score-count'),
   };
 }
 
@@ -64,6 +98,62 @@ export function hintButtonVisible(game, index) {
 export function captionText(game, index) {
   if (!game.activity) return '';
   return `${game.activityName ?? ''} · ${game.levels[index]?.title ?? ''}`;
+}
+
+export function optimizedCustomSteps(lx, lc, rx, rc) {
+  let steps = 0;
+  if (rx !== 0) steps += 2 + Number(lx !== 0);
+  if (lc !== 0) steps += 2 + Number(rc !== 0);
+  if (Math.abs(lx - rx) !== 1) steps += 1;
+  return Math.max(1, steps);
+}
+
+function showTutorial(game) {
+  game.els.tutorialModal.inert = false;
+  game.els.tutorialModal.classList.add('active');
+  showTutorialStep(game, 0);
+}
+
+function showTutorialStep(game, index) {
+  const step = TUTORIAL_STEPS[index];
+  game.tutorialStepIndex = index;
+  game.els.tutorialProgress.textContent = `Etapa ${index + 1} de ${TUTORIAL_STEPS.length}`;
+  game.els.tutorialStepText.textContent = step.text;
+  game.els.btnPreviousTutorial.hidden = index === 0;
+  game.els.btnNextTutorial.hidden = index === TUTORIAL_STEPS.length - 1;
+  game.els.btnCloseTutorial.hidden = index !== TUTORIAL_STEPS.length - 1;
+  game.tutorialTarget?.classList.remove('tutorial-highlight');
+  game.tutorialTarget = null;
+
+  const target = document.querySelector(step.target);
+  if (target && !target.hidden) {
+    target.scrollIntoView?.({ block: 'center', inline: 'center' });
+    const bounds = target.getBoundingClientRect();
+    if (bounds.width > 0 && bounds.height > 0) {
+      target.classList.add('tutorial-highlight');
+      game.tutorialTarget = target;
+      game.els.tutorialModal.classList.add('tutorial-spotlight');
+      game.els.tutorialModal.style.setProperty('--tutorial-spotlight-x', `${bounds.left + bounds.width / 2}px`);
+      game.els.tutorialModal.style.setProperty('--tutorial-spotlight-y', `${bounds.top + bounds.height / 2}px`);
+      game.els.tutorialModal.style.setProperty(
+        '--tutorial-spotlight-radius',
+        `${Math.hypot(bounds.width, bounds.height) / 2 + 18}px`,
+      );
+    } else {
+      game.els.tutorialModal.classList.remove('tutorial-spotlight');
+    }
+  } else {
+    game.els.tutorialModal.classList.remove('tutorial-spotlight');
+  }
+
+}
+
+function closeTutorial(game) {
+  game.els.tutorialModal.classList.remove('active', 'tutorial-spotlight');
+  game.els.tutorialModal.inert = true;
+  game.tutorialTarget?.classList.remove('tutorial-highlight');
+  game.tutorialTarget = null;
+  game.tutor?.hush();
 }
 
 function writeHint(game, lvl) {
@@ -301,17 +391,17 @@ export function handleGameKeydown(game, e) {
 export function loadLevel(game, index) {
   game.currentLevelIndex = index;
   const lvl = game.levels[index];
-
-  game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
+  game.steps = 0;
   game.stepCount = 0;
   game.minimumSteps = minimumSteps(lvl.lhs, lvl.rhs);
+  game.updateStepCount();
+  game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
   writeHint(game, lvl);
   game.els.btnHint.hidden = !hintButtonVisible(game, index);
   if (game.els.activityCaption) {
     game.els.activityCaption.textContent = captionText(game, index);
     game.els.activityCaption.hidden = !game.activity;
   }
-  if (game.els.stepCount) game.els.stepCount.textContent = '0';
   setHintVisible(game, false);
   game.tutor?.hush();
   cancelOperation(game);
@@ -333,10 +423,21 @@ export function loadLevel(game, index) {
 }
 
 function bindControls(game) {
-    game.els.btnTutorialClose.addEventListener('click', () => {
-      game.els.tutorialModal.classList.remove('active');
-      game.els.tutorialModal.inert = true;
-    });
+  game.els.btnTutorial.addEventListener('click', () => showTutorial(game));
+
+  game.els.btnPreviousTutorial.addEventListener('click', () => {
+    if (game.tutorialStepIndex > 0) showTutorialStep(game, game.tutorialStepIndex - 1);
+  });
+
+  game.els.btnNextTutorial.addEventListener('click', () => {
+    if (game.tutorialStepIndex < TUTORIAL_STEPS.length - 1) {
+      showTutorialStep(game, game.tutorialStepIndex + 1);
+    }
+  });
+
+  game.els.btnCloseTutorial.addEventListener('click', () => {
+    closeTutorial(game);
+  });
 
   game.els.btnSound.addEventListener('click', (e) => {
     const active = game.sound.toggle();
@@ -425,6 +526,7 @@ function bindControls(game) {
 
     game.levels.push({
       id: game.levels.length + 1,
+      minSteps: optimizedCustomSteps(lx, lc, rx, rc),
       title: 'Laboratório Livre Personalizado',
       hint: 'Isole o x com a mesma operação nos dois lados e fundindo termos iguais.',
       lhs: customLhs,
@@ -434,6 +536,7 @@ function bindControls(game) {
     game.els.customModal.classList.remove('active');
     game.els.customModal.inert = true;
     loadLevel(game, game.levels.length - 1);
+    game.tutor?.explainCustomEquation();
   });
 
   const speechBubble = document.getElementById('ops-speech-bubble');
@@ -567,7 +670,28 @@ export function bootGame({ sound, particles, levels, activityName }) {
     completedLevels: new Set(),
     hintOpen: false,
     pendingOperation: null,
+    steps: 0,
+    tutorialStepIndex: 0,
+    tutorialTarget: null,
     els,
+    recordStep() {
+      game.steps += 1;
+      game.stepCount = game.steps;
+      game.updateStepCount();
+    },
+    updateStepCount() {
+      if (!els.stepCount) return;
+      const minimum = game.levels[game.currentLevelIndex]?.minSteps ?? game.minimumSteps;
+      const score = scoreForSteps(game.steps, minimum);
+      els.stepValue.textContent = minimum ? `${game.steps}/${minimum}` : String(game.steps);
+      if (els.scoreCount) els.scoreCount.textContent = score === null ? '—' : String(score);
+      els.stepCount.setAttribute(
+        'aria-label',
+        minimum
+          ? `Passos utilizados: ${game.steps}. Mínimo otimizado: ${minimum}. Pontuação: ${score} pontos.`
+          : `Passos utilizados: ${game.steps}. Pontuação indisponível.`,
+      );
+    },
     beginOperation(operation) {
       beginOperation(game, operation);
     },
@@ -596,7 +720,6 @@ export function bootGame({ sound, particles, levels, activityName }) {
 
   bindControls(game);
   loadLevel(game, 0);
-  els.tutorialModal.inert = false;
-  els.tutorialModal.classList.add('active');
+  showTutorial(game);
   return game;
 }

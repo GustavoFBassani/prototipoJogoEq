@@ -21,7 +21,7 @@ if (located.mode === 'editor') {
   const particles = initParticles();
   const play = located.mode === 'play';
   const levels = play
-    ? located.activity.phases.map(({ title, hint, lhs, rhs }, i) => ({ id: i + 1, title, hint, lhs, rhs }))
+    ? located.activity.phases.map(({ title, hint, lhs, rhs, minSteps }, i) => ({ id: i + 1, title, hint, lhs, rhs, minSteps }))
     : undefined;
   const game = bootGame({ sound, particles, levels, activityName: play ? located.activity.name : undefined });
   attachTutor(game);

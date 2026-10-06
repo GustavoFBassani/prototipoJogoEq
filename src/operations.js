@@ -16,6 +16,10 @@ function scaleItems(items, mutate) {
 }
 
 function recordOperationStep(game) {
+  if (typeof game.recordStep === 'function') {
+    game.recordStep();
+    return;
+  }
   game.stepCount = (game.stepCount || 0) + 1;
 }
 
@@ -93,8 +97,8 @@ export function applyNumberToBothSides(game, operation, n, operand) {
     game.rhsItems = scaleItems(game.rhsItems, (num, den) =>
       multiplyRational(num, den, n)
     );
-    recordOperationStep(game);
     burstBothSides(game);
+    recordOperationStep(game);
     game.renderAll();
     return true;
   }
@@ -104,11 +108,11 @@ export function applyNumberToBothSides(game, operation, n, operand) {
     game.lhsItems = scaleItems(game.lhsItems, (num, den) =>
       divideRational(num, den, n)
     );
-    recordOperationStep(game);
     game.rhsItems = scaleItems(game.rhsItems, (num, den) =>
       divideRational(num, den, n)
     );
     burstBothSides(game);
+    recordOperationStep(game);
     game.renderAll();
     return true;
   }

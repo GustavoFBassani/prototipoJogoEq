@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Operation } from '../keys.js';
-import { advanceFromWinModal, beginOperation, captionText, handleGameKeydown, hintButtonVisible, hintUsesHtml, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
+import { scoreForSteps } from '../win.js';
+import { advanceFromWinModal, beginOperation, captionText, handleGameKeydown, hintButtonVisible, hintUsesHtml, optimizedCustomSteps, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
 
 function mockModal(active) {
   const classes = new Set(active ? ['active'] : []);
@@ -326,6 +327,26 @@ describe('stepOpValue and updateOpValueForOperand', () => {
     expect(game.els.opNumberValue.value).toBe('÷3');
     stepOpValue(game, -1);
     expect(game.els.opNumberValue.value).toBe('÷2');
+  });
+});
+
+describe('scoreForSteps', () => {
+  it('awards 100 points at or below the optimized minimum and deducts 10 per extra step', () => {
+    expect(scoreForSteps(4, 4)).toBe(100);
+    expect(scoreForSteps(3, 4)).toBe(100);
+    expect(scoreForSteps(5, 4)).toBe(90);
+    expect(scoreForSteps(20, 4)).toBe(0);
+  });
+
+  it('does not report a score when the optimized minimum is unknown', () => {
+    expect(scoreForSteps(4, undefined)).toBeNull();
+  });
+});
+
+describe('optimizedCustomSteps', () => {
+  it('counts operations, required term reductions, and division for a free equation', () => {
+    expect(optimizedCustomSteps(2, 3, 1, 5)).toBe(6);
+    expect(optimizedCustomSteps(4, 0, 0, 8)).toBe(1);
   });
 });
 

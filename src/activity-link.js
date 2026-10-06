@@ -48,6 +48,7 @@ function isStudentPhase(phase) {
     isObject(phase) &&
     typeof phase.title === 'string' &&
     typeof phase.hint === 'string' &&
+    (phase.minSteps === undefined || (Number.isInteger(phase.minSteps) && phase.minSteps > 0)) &&
     Array.isArray(phase.lhs) &&
     Array.isArray(phase.rhs) &&
     phase.lhs.every(isTerm) &&

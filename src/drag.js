@@ -153,6 +153,7 @@ export function setupDrag(element, item, sideName, game) {
             );
           }
 
+          game.recordStep?.();
           game.renderAll();
         }
       } else {

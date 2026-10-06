@@ -27,7 +27,8 @@ function renderContainer(items, containerEl, sideName, game) {
 
 export function renderAll(game) {
   const { els } = game;
-  els.stepCount.textContent = String(game.stepCount);
+  if (typeof game.updateStepCount === 'function') game.updateStepCount();
+  else els.stepCount.textContent = String(game.stepCount);
   renderContainer(game.lhsItems, els.dropzoneLhs, 'lhs', game);
   renderContainer(game.rhsItems, els.dropzoneRhs, 'rhs', game);
 

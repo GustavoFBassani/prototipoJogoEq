@@ -119,6 +119,14 @@ export function validateActivity({ name, phases } = {}) {
     const title = trimmed(phase.title);
     if (title === '') return fail(`${label}: dê um título para a fase.`);
 
+    let minSteps;
+    if (phase.minSteps !== undefined && phase.minSteps !== null && phase.minSteps !== '') {
+      minSteps = Number(phase.minSteps);
+      if (!Number.isInteger(minSteps) || minSteps < 1) {
+        return fail(`${label}: o mínimo otimizado deve ser um número inteiro positivo.`);
+      }
+    }
+
     const parsed = parseEquation(phase.equation);
     if (!parsed.ok) return fail(`${label}: ${parsed.reason}`);
 
@@ -132,7 +140,13 @@ export function validateActivity({ name, phases } = {}) {
       return fail(`${label}: a equação precisa ter exatamente uma solução.`);
     }
 
-    validPhases.push({ title, hint: trimmed(phase.hint), lhs: parsed.lhs, rhs: parsed.rhs });
+    validPhases.push({
+      title,
+      hint: trimmed(phase.hint),
+      lhs: parsed.lhs,
+      rhs: parsed.rhs,
+      ...(minSteps ? { minSteps } : {}),
+    });
   }
 
   return { ok: true, activity: { name: activityName, phases: validPhases } };

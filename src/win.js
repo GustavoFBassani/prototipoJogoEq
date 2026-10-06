@@ -1,5 +1,10 @@
 import { winningConstant, formatSolution } from './algebra.js';
 
+export function scoreForSteps(steps, minimum) {
+  if (!Number.isInteger(minimum) || minimum < 1) return null;
+  return Math.max(0, 100 - Math.max(0, steps - minimum) * 10);
+}
+
 export function checkWinCondition(game) {
   const constant = winningConstant(game.lhsItems, game.rhsItems);
   if (!constant) return;
@@ -31,12 +36,13 @@ export function triggerVictory(game, constTerm) {
   }
 
   const solution = formatSolution(constTerm);
+  const level = game.levels[game.currentLevelIndex];
+  const minimum = level.minSteps ?? game.minimumSteps;
+  const score = scoreForSteps(game.steps, minimum);
+  game.els.winScore.textContent = score === null
+    ? `${game.steps} passos utilizados · mínimo otimizado não definido`
+    : `${game.steps} passos · mínimo ${minimum} · ${score} pontos`;
   game.els.winSolText.textContent = solution;
-  const score = game.stepCount === 0
-    ? (game.minimumSteps === 0 ? 1000 : 0)
-    : Math.round((game.minimumSteps / game.stepCount) * 1000);
-  game.els.winPerformance.textContent =
-    `${game.stepCount} ${game.stepCount === 1 ? 'passo' : 'passos'} · mínimo ${game.minimumSteps} · ${score} pontos`;
   game.tutor?.celebrate(solution);
   game.els.winModal.inert = false;
   game.els.winModal.classList.add('active');

@@ -91,13 +91,13 @@ describe('roverSpot', () => {
 });
 
 describe('TUTORIAL_STEPS', () => {
-  it('explains the balance, the buttons, merging, the goal, and the hint button', () => {
+  it('has a slide and visible target for each game instruction', () => {
     const script = TUTORIAL_STEPS.map((step) => step.text).join(' ');
-    expect(script).toMatch(/balança/i);
     expect(script).toMatch(/dois lados/);
-    expect(script).toMatch(/fundem/);
-    expect(script).toMatch(/x fica sozinho/);
+    expect(script).toMatch(/x fique sozinho/);
     expect(script).toMatch(/Dica/);
+    expect(TUTORIAL_STEPS.every((step) => step.target.startsWith('.') || step.target.startsWith('#'))).toBe(true);
+    expect(TUTORIAL_STEPS.some((step) => step.target === '#step-count')).toBe(true);
   });
 });
 
@@ -132,33 +132,33 @@ describe('createTutor', () => {
     vi.unstubAllGlobals();
   });
 
-  it('places Rover and plays the tutorial in order', () => {
+  it('places Rover without speaking during the visual tutorial', () => {
     const agent = fakeAgent();
     const tutor = createTutor(agent);
     tutor.place(1280, 800, { right: 900, top: 200, height: 240 });
-    tutor.start();
 
+    expect(agent._balloon.WORD_SPEAK_TIME).toBe(350);
+    expect(agent._balloon.CLOSE_BALLOON_DELAY).toBe(6000);
     expect(agent._el.style.left).toBe('908px');
     expect(agent._el.style.top).toBe('280px');
     expect(agent._balloon._content.style.fontFamily).toBe('Minecraft, monospace');
-
-    const spoken = agent.calls.filter((call) => call[0] === 'speak').map((call) => call[1]);
-    expect(spoken).toEqual(TUTORIAL_STEPS.map((step) => step.text));
-    const greetAt = agent.calls.findIndex((call) => call[0] === 'play' && call[1] === 'Greet');
-    expect(greetAt).toBeGreaterThan(agent.calls.findIndex((call) => call[0] === 'speak'));
+    expect(agent.calls.some((call) => call[0] === 'speak')).toBe(false);
+    expect(agent.calls.some((call) => call[0] === 'play')).toBe(false);
   });
 
-  it('interrupts and reads the hint without tags', () => {
+  it('speaks the readable hint when the student asks for help', () => {
     const agent = fakeAgent();
     const tutor = createTutor(agent);
-    tutor.speakHint(LEVELS[0].hint);
+    tutor.speakHint('<b>Some</b> 2 nos dois lados.');
 
     expect(agent.calls[0]).toEqual(['stop']);
     expect(agent._balloon.hide).toHaveBeenCalledWith(true);
     expect(agent._balloon._hiding).toBe(null);
-    const spoken = agent.calls.find((call) => call[0] === 'speak');
-    expect(spoken[1]).toBe('Aplique − com 2 aos dois lados, ou arraste iguais no mesmo prato para fundir.');
-    expect(spoken[2]).toEqual({ hold: true });
+    expect(agent.calls.find((call) => call[0] === 'speak')).toEqual([
+      'speak',
+      'Dica: Some 2 nos dois lados.',
+      undefined,
+    ]);
   });
 
   it('congratulates with the solution', () => {
@@ -172,12 +172,19 @@ describe('createTutor', () => {
     expect(agent.calls[playAt]).toEqual(['play', 'Congratulate', 1800]);
   });
 
-  it('reads a hint even when Rover has no extra animations', () => {
+  it('can speak a hint when Rover has no extra animations', () => {
     const agent = fakeAgent([]);
     const tutor = createTutor(agent);
     tutor.speakHint('Só o x.');
     expect(agent.calls.some((call) => call[0] === 'play')).toBe(false);
-    expect(agent.calls).toContainEqual(['speak', 'Só o x.', { hold: true }]);
+    expect(agent.calls.some((call) => call[0] === 'speak' && call[1] === 'Dica: Só o x.')).toBe(true);
+  });
+
+  it('explains how to solve a free equation without reading the phase hint', () => {
+    const agent = fakeAgent([]);
+    const tutor = createTutor(agent);
+    tutor.explainCustomEquation();
+    expect(agent.calls.some((call) => call[0] === 'speak' && /equação livre/.test(call[1]))).toBe(true);
   });
 
   it('mutes Rover when the game sound is off', () => {

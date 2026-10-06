@@ -4,6 +4,7 @@ const n = (num, den = 1) => ({ kind: 'constant', num, den });
 export const LEVELS = [
   {
     id: 1,
+    minSteps: 4,
     title: 'Primeiros Passos com Constantes',
     hint: 'Aplique <b>−</b> com 2 aos dois lados, ou arraste iguais no mesmo prato para fundir.',
     lhs: [x(1), n(1), n(1)],
@@ -11,6 +12,7 @@ export const LEVELS = [
   },
   {
     id: 2,
+    minSteps: 3,
     title: 'Neutralizando Números Negativos',
     hint: 'Tem <b>−3</b> na esquerda. Aplique <b>+</b> com 3 e aniquile os opostos.',
     lhs: [x(1), n(-3)],
@@ -18,6 +20,7 @@ export const LEVELS = [
   },
   {
     id: 3,
+    minSteps: 3,
     title: 'Descobrindo Resultados Negativos',
     hint: 'Aplique <b>−</b> com 4 aos dois lados e aniquile os pares.',
     lhs: [x(1), n(4)],
@@ -25,6 +28,7 @@ export const LEVELS = [
   },
   {
     id: 4,
+    minSteps: 6,
     title: 'Variável nos Dois Lados',
     hint: 'Tem <b>+x</b> à direita. Aplique <b>−</b> em x com 1 e aniquile o x da direita.',
     lhs: [x(2), n(1)],
@@ -32,6 +36,7 @@ export const LEVELS = [
   },
   {
     id: 5,
+    minSteps: 6,
     title: 'Misturando Variáveis e Negativos',
     hint: 'Tire o <b>x</b> da direita com <b>−</b> em x e o <b>−2</b> da esquerda com <b>+</b>.',
     lhs: [x(2), n(-2)],
@@ -39,6 +44,7 @@ export const LEVELS = [
   },
   {
     id: 6,
+    minSteps: 6,
     title: 'Balança com 3x',
     hint: 'Aplique <b>−</b> em x com 2 para cancelar o 2x da direita.',
     lhs: [x(3), n(1)],
@@ -46,6 +52,7 @@ export const LEVELS = [
   },
   {
     id: 7,
+    minSteps: 3,
     title: 'Equilíbrio com Negativos em Massa',
     hint: 'Aplique <b>+</b> com 5 para aniquilar o <b>−5</b> da esquerda.',
     lhs: [x(1), n(-5)],
@@ -53,6 +60,7 @@ export const LEVELS = [
   },
   {
     id: 8,
+    minSteps: 6,
     title: 'Constantes Negativas no Resultado',
     hint: 'Primeiro <b>−</b> em x com 1 para tirar o x da direita, depois <b>−</b> com 4.',
     lhs: [x(2), n(4)],
@@ -60,6 +68,7 @@ export const LEVELS = [
   },
   {
     id: 9,
+    minSteps: 6,
     title: 'O Desafio dos Sinais Opostos',
     hint: 'Remova 2x da direita com <b>−</b> em x com 2, depois <b>+</b> com 3.',
     lhs: [x(3), n(-3)],
@@ -67,6 +76,7 @@ export const LEVELS = [
   },
   {
     id: 10,
+    minSteps: 6,
     title: 'Mestre Alquimista da Álgebra',
     hint: 'Isole o x reduzindo variáveis e constantes semelhantes.',
     lhs: [x(2), n(5)],
@@ -74,6 +84,7 @@ export const LEVELS = [
   },
   {
     id: 11,
+    minSteps: 4,
     title: 'A Regra da Divisão',
     hint: 'Tire as constantes com <b>−</b> e depois <b>÷</b> por 2.',
     lhs: [x(2), n(2)],
@@ -81,6 +92,7 @@ export const LEVELS = [
   },
   {
     id: 12,
+    minSteps: 1,
     title: 'Desafio das Frações (4x = −3)',
     hint: 'Divida os dois lados por <b>4</b>. A resposta pode ser fração: <b>−3/4</b>.',
     lhs: [x(4)],
@@ -88,6 +100,7 @@ export const LEVELS = [
   },
   {
     id: 13,
+    minSteps: 1,
     title: 'Inversão de Sinais (−x = 7)',
     hint: 'O x está negativo. Multiplique ou divida por <b>−1</b> para virar +x.',
     lhs: [x(-1)],
@@ -95,6 +108,7 @@ export const LEVELS = [
   },
   {
     id: 14,
+    minSteps: 6,
     title: 'Fusão e Grande Equilíbrio',
     hint: 'Arraste iguais no mesmo prato para fundir antes de isolar o x.',
     lhs: [x(2), x(1), n(4)],

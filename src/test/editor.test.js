@@ -29,8 +29,8 @@ function draftWith(phases, name = 'Turma') {
   return { v: 1, name, phases };
 }
 
-function phase(title, equation, hint = '') {
-  return { title, hint, equation };
+function phase(title, equation, hint = '', minSteps = '') {
+  return { title, hint, equation, minSteps };
 }
 
 function payloadOf(url) {
@@ -39,7 +39,11 @@ function payloadOf(url) {
 
 describe('blankDraft', () => {
   it('starts with an empty name and one empty phase', () => {
-    expect(blankDraft()).toEqual({ v: 1, name: '', phases: [{ title: '', hint: '', equation: '' }] });
+    expect(blankDraft()).toEqual({
+      v: 1,
+      name: '',
+      phases: [{ title: '', hint: '', equation: '', minSteps: '' }],
+    });
   });
 });
 
@@ -65,6 +69,16 @@ describe('classLinkState', () => {
     const state = classLinkState(draftWith([phase('Junta', '2x + 3x = 10')]), ORIGIN, PATH);
     const activity = decodeStudentActivity(payloadOf(state.value));
     expect(activity.phases[0].lhs).toHaveLength(2);
+  });
+
+  it('includes an authored optimized minimum in the student activity link', () => {
+    const state = classLinkState(
+      draftWith([phase('Soma', '2x + 3 = 11', '', '4')]),
+      ORIGIN,
+      PATH,
+    );
+    const activity = decodeStudentActivity(payloadOf(state.value));
+    expect(activity.phases[0].minSteps).toBe(4);
   });
 });
 

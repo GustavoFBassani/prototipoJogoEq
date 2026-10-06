@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Operation, Operand } from '../keys.js';
 import { parseOpNumber, formatOpDisplay, applyNumberToBothSides } from '../operations.js';
 
@@ -128,6 +128,18 @@ describe('applyNumberToBothSides', () => {
     expect(applyNumberToBothSides(game, Operation.MULTIPLY, -1)).toBe(true);
     expect(game.lhsItems[0]).toMatchObject({ kind: 'variable', num: 1, den: 1 });
     expect(game.rhsItems[0]).toMatchObject({ kind: 'constant', num: -7, den: 1 });
+  });
+
+  it('counts one step for a successfully applied operation', () => {
+    const game = fakeGame(
+      [{ kind: 'variable', num: 1, den: 1 }],
+      [{ kind: 'constant', num: 2, den: 1 }],
+    );
+    game.recordStep = vi.fn();
+
+    expect(applyNumberToBothSides(game, Operation.ADD, 3, Operand.NUMBER)).toBe(true);
+
+    expect(game.recordStep).toHaveBeenCalledOnce();
   });
 
   it('adds +3 to both sides as one constant each', () => {
