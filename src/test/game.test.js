@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Operation } from '../keys.js';
-import { advanceFromWinModal, beginOperation, handleGameKeydown, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
+import { advanceFromWinModal, beginOperation, captionText, handleGameKeydown, hintButtonVisible, hintUsesHtml, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
 
 function mockModal(active) {
   const classes = new Set(active ? ['active'] : []);
@@ -89,8 +89,23 @@ describe('beginOperation', () => {
     beginOperation(game, operation);
     expect(game.els.operandLegend.textContent).toBe(text);
     expect(game.els.opNumberValue.value).toBe(value);
+    expect(game.els.opNumberValue.focus).toHaveBeenCalledOnce();
+    expect(game.els.opNumberValue.select).toHaveBeenCalledOnce();
     expect(game.els.operandSelector.hidden).toBe(false);
     expect(game.els.operandSelector.classList.contains('is-number-only')).toBe(numberOnly);
+  });
+
+  it('does not focus the operation field automatically on touch devices', () => {
+    vi.stubGlobal('window', {
+      matchMedia: vi.fn(() => ({ matches: true })),
+    });
+    const game = mockOpGame();
+
+    beginOperation(game, Operation.ADD);
+
+    expect(game.els.opNumberValue.focus).not.toHaveBeenCalled();
+    expect(game.els.opNumberValue.select).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });
 
@@ -192,6 +207,20 @@ describe('stepOpValue and updateOpValueForOperand', () => {
     expect(game.els.opNumberValue.value).toBe('1');
     stepOpValue(game, -1);
     expect(game.els.opNumberValue.value).toBe('1');
+  });
+
+  it('steps multiply factors through negative values without allowing zero', () => {
+    const game = mockGame({ pendingOperation: Operation.MULTIPLY, operandValue: '2' });
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('×1');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('×-1');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('×-2');
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('×-1');
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('×1');
   });
 
   it('increases and decreases x terms correctly (x -> 2x -> 3x -> 2x -> x)', () => {
@@ -297,5 +326,43 @@ describe('stepOpValue and updateOpValueForOperand', () => {
     expect(game.els.opNumberValue.value).toBe('÷3');
     stepOpValue(game, -1);
     expect(game.els.opNumberValue.value).toBe('÷2');
+  });
+});
+
+describe('activity mode helpers', () => {
+  const activityGame = {
+    activity: true,
+    activityName: 'Turma 7A',
+    levels: [
+      { title: 'Aquecimento', hint: '<b>tira</b> o 3' },
+      { title: 'Sem dica', hint: '   ' },
+    ],
+  };
+  const campaignGame = {
+    activity: false,
+    levels: [{ title: 'Fase 1', hint: 'Use <b>÷</b>' }],
+  };
+
+  it('writes activity hints as plain text', () => {
+    expect(hintUsesHtml(activityGame)).toBe(false);
+  });
+
+  it('hides the hint button when the activity hint is blank', () => {
+    expect(hintButtonVisible(activityGame, 0)).toBe(true);
+    expect(hintButtonVisible(activityGame, 1)).toBe(false);
+  });
+
+  it('keeps HTML hints and the hint button in campaign', () => {
+    expect(hintUsesHtml(campaignGame)).toBe(true);
+    expect(hintButtonVisible(campaignGame, 0)).toBe(true);
+  });
+
+  it('captions activity phases with name and title', () => {
+    expect(captionText(activityGame, 0)).toBe('Turma 7A · Aquecimento');
+    expect(captionText(activityGame, 1)).toBe('Turma 7A · Sem dica');
+  });
+
+  it('leaves the caption empty in campaign', () => {
+    expect(captionText(campaignGame, 0)).toBe('');
   });
 });

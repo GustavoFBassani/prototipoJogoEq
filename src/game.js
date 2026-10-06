@@ -23,6 +23,7 @@ function queryEls() {
     levelsModal: document.getElementById('levels-modal'),
     levelsGrid: document.getElementById('levels-grid'),
     customModal: document.getElementById('custom-modal'),
+    creditsModal: document.getElementById('credits-modal'),
     opsPanel: document.querySelector('.operations-panel'),
     opNumberPanel: document.getElementById('op-number-panel'),
     opNumberValue: document.getElementById('op-number-value'),
@@ -37,6 +38,8 @@ function queryEls() {
     btnOpStepUp: document.getElementById('btn-op-step-up'),
     btnOpStepDown: document.getElementById('btn-op-step-down'),
     btnSound: document.getElementById('btn-sound'),
+    btnCredits: document.getElementById('btn-credits'),
+    btnCloseCredits: document.getElementById('btn-close-credits'),
     btnLevels: document.getElementById('btn-levels'),
     btnCloseLevels: document.getElementById('btn-close-levels'),
     btnReset: document.getElementById('btn-reset'),
@@ -45,7 +48,27 @@ function queryEls() {
     btnCustomEq: document.getElementById('btn-custom-eq'),
     btnCloseCustom: document.getElementById('btn-close-custom'),
     btnStartCustom: document.getElementById('btn-start-custom'),
+    activityCaption: document.getElementById('activity-caption'),
   };
+}
+
+export function hintUsesHtml(game) {
+  return !game.activity;
+}
+
+export function hintButtonVisible(game, index) {
+  if (!game.activity) return true;
+  return String(game.levels[index]?.hint ?? '').trim() !== '';
+}
+
+export function captionText(game, index) {
+  if (!game.activity) return '';
+  return `${game.activityName ?? ''} · ${game.levels[index]?.title ?? ''}`;
+}
+
+function writeHint(game, lvl) {
+  if (hintUsesHtml(game)) game.els.instructionHint.innerHTML = lvl.hint;
+  else game.els.instructionHint.textContent = lvl.hint ?? '';
 }
 
 function setHintVisible(game, open) {
@@ -59,6 +82,15 @@ function showOpNote(game, text) {
   game.els.opNumberNote.textContent = text || '';
 }
 
+function focusOperationInput(game, selectValue = false) {
+  const isTouchDevice = typeof window !== 'undefined'
+    && window.matchMedia?.('(pointer: coarse) and (hover: none)').matches;
+  if (isTouchDevice) return;
+
+  game.els.opNumberValue.focus();
+  if (selectValue) game.els.opNumberValue.select();
+}
+
 function selectedOperand(game) {
   if (game.els.operandSelector?.hidden) return Operand.NUMBER;
   const raw = game.els.opNumberValue?.value?.trim().toLowerCase() || '';
@@ -70,8 +102,14 @@ function selectedOperand(game) {
 export function stepOpValue(game, delta) {
   const operand = selectedOperand(game);
   const current = parseOpNumber(game.els.opNumberValue.value) ?? 1;
-  const magnitude = Math.abs(current);
-  const next = Math.max(1, magnitude + delta);
+  let next;
+  if (game.pendingOperation === Operation.MULTIPLY) {
+    next = current + delta;
+    if (next === 0) next = delta < 0 ? -1 : 1;
+  } else {
+    const magnitude = Math.abs(current);
+    next = Math.max(1, magnitude + delta);
+  }
   game.els.opNumberValue.value = formatOpDisplay(next, operand, game.pendingOperation);
   showOpNote(game, '');
 }
@@ -113,8 +151,7 @@ export function beginOperation(game, operation) {
   }
 
   showOpNote(game, '');
-  game.els.opNumberValue.focus();
-  game.els.opNumberValue.select();
+  focusOperationInput(game, true);
 }
 
 function mapOperationToTextContent (operation) {
@@ -157,7 +194,7 @@ function confirmOperation(game) {
     raw.includes('x')
   ) {
     showOpNote(game, 'Multiplicação e divisão aceitam apenas números.');
-    game.els.opNumberValue.focus();
+    focusOperationInput(game);
     return;
   }
 
@@ -171,7 +208,7 @@ function confirmOperation(game) {
         ? 'Zero desequilibra a balança. Escolhe outro número.'
         : 'Escolhe um valor válido diferente de zero.'
     );
-    game.els.opNumberValue.focus();
+    focusOperationInput(game);
     return;
   }
   const ok = applyNumberToBothSides(game, operation, n, operand);
@@ -183,7 +220,8 @@ function isBlockingModalOpen(game) {
     game.els.winModal.classList.contains('active') ||
     game.els.levelsModal?.classList.contains('active') ||
     game.els.customModal?.classList.contains('active') ||
-    game.els.tutorialModal?.classList.contains('active')
+    game.els.tutorialModal?.classList.contains('active') ||
+    game.els.creditsModal?.classList.contains('active')
   );
 }
 
@@ -213,7 +251,10 @@ export function resetCurrentLevel(game) {
 }
 
 export function handleGameKeydown(game, e) {
-  if (game.els.tutorialModal?.classList.contains('active')) return;
+  if (
+    game.els.tutorialModal?.classList.contains('active')
+    || game.els.creditsModal?.classList.contains('active')
+  ) return;
 
   if (e.key === 'Escape' && game.pendingOperation) {
     e.preventDefault();
@@ -264,8 +305,15 @@ export function loadLevel(game, index) {
   game.els.levelLabel.textContent = `${index + 1}/${game.levels.length}`;
   game.stepCount = 0;
   game.minimumSteps = minimumSteps(lvl.lhs, lvl.rhs);
-  game.els.instructionHint.innerHTML = lvl.hint;
+  writeHint(game, lvl);
+  game.els.btnHint.hidden = !hintButtonVisible(game, index);
+  if (game.els.activityCaption) {
+    game.els.activityCaption.textContent = captionText(game, index);
+    game.els.activityCaption.hidden = !game.activity;
+  }
+  if (game.els.stepCount) game.els.stepCount.textContent = '0';
   setHintVisible(game, false);
+  game.tutor?.hush();
   cancelOperation(game);
 
   game.lhsItems = lvl.lhs.map((item) => ({
@@ -293,6 +341,7 @@ function bindControls(game) {
   game.els.btnSound.addEventListener('click', (e) => {
     const active = game.sound.toggle();
     e.currentTarget.textContent = active ? '🔊' : '🔇';
+    game.tutor?.setSoundEnabled(active);
   });
 
   game.els.btnLevels.addEventListener('click', () => {
@@ -306,19 +355,32 @@ function bindControls(game) {
     game.els.levelsModal.inert = true;
   });
 
+  game.els.btnCredits.addEventListener('click', () => {
+    game.els.creditsModal.inert = false;
+    game.els.creditsModal.classList.add('active');
+  });
+
+  game.els.btnCloseCredits.addEventListener('click', () => {
+    game.els.creditsModal.classList.remove('active');
+    game.els.creditsModal.inert = true;
+  });
+
   game.els.btnReset.addEventListener('click', () => {
     resetCurrentLevel(game);
   });
 
   game.els.btnHint.addEventListener('click', () => {
     const curLvl = game.levels[game.currentLevelIndex];
-    game.els.instructionHint.innerHTML = curLvl.hint;
+    writeHint(game, curLvl);
     const next = !game.hintOpen;
     setHintVisible(game, next);
     if (next) {
       game.els.instructionHint.style.animation = 'none';
       void game.els.instructionHint.offsetWidth;
       game.els.instructionHint.style.animation = 'pulse-target 0.6s 2';
+      game.tutor?.speakHint(curLvl.hint);
+    } else {
+      game.tutor?.hush();
     }
   });
 
@@ -425,7 +487,7 @@ function bindControls(game) {
     game.els.btnOpStepUp.addEventListener('click', (e) => {
       e.preventDefault();
       stepOpValue(game, 1);
-      game.els.opNumberValue.focus();
+      focusOperationInput(game);
     });
   }
 
@@ -433,7 +495,7 @@ function bindControls(game) {
     game.els.btnOpStepDown.addEventListener('click', (e) => {
       e.preventDefault();
       stepOpValue(game, -1);
-      game.els.opNumberValue.focus();
+      focusOperationInput(game);
     });
   }
 
@@ -483,12 +545,15 @@ function bindControls(game) {
   window.addEventListener('keydown', (e) => handleGameKeydown(game, e));
 }
 
-export function bootGame({ sound, particles }) {
+export function bootGame({ sound, particles, levels, activityName }) {
   const els = queryEls();
+  const activity = Array.isArray(levels);
   const game = {
     sound,
     particles,
-    levels: LEVELS.map((lvl) => ({
+    activity,
+    activityName: activity ? activityName ?? '' : '',
+    levels: (activity ? levels : LEVELS).map((lvl) => ({
       ...lvl,
       lhs: lvl.lhs.map((item) => ({ ...item })),
       rhs: lvl.rhs.map((item) => ({ ...item })),
@@ -525,6 +590,9 @@ export function bootGame({ sound, particles }) {
       loadLevel(game, index);
     },
   };
+
+  els.btnLevels.hidden = activity;
+  els.btnCustomEq.hidden = activity;
 
   bindControls(game);
   loadLevel(game, 0);
