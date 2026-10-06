@@ -346,7 +346,7 @@ export function stepOpValue(game, delta) {
   const operand = selectedOperand(game);
   const current = parseOpNumber(game.els.opNumberValue.value) ?? 1;
   let next;
-  if (game.pendingOperation === Operation.MULTIPLY) {
+  if (game.pendingOperation === Operation.MULTIPLY || game.pendingOperation === Operation.DIVIDE) {
     next = current + delta;
     if (next === 0) next = delta < 0 ? -1 : 1;
   } else {

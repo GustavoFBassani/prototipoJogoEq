@@ -252,6 +252,20 @@ describe('stepOpValue and updateOpValueForOperand', () => {
     expect(game.els.opNumberValue.value).toBe('×1');
   });
 
+  it('steps divide values through negative values without allowing zero', () => {
+    const game = mockGame({ pendingOperation: Operation.DIVIDE, operandValue: '2' });
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('÷1');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('÷-1');
+    stepOpValue(game, -1);
+    expect(game.els.opNumberValue.value).toBe('÷-2');
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('÷-1');
+    stepOpValue(game, 1);
+    expect(game.els.opNumberValue.value).toBe('÷1');
+  });
+
   it('increases and decreases x terms correctly (x -> 2x -> 3x -> 2x -> x)', () => {
     const game = mockGame({ operandValue: 'x', operand: 'unknown' });
     stepOpValue(game, 1);
