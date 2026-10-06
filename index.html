@@ -24,8 +24,12 @@
           <h1 class="logo-title">IGUALAÍ</h1>
           <p id="activity-caption" hidden></p>
           <p class="steps-badge" id="step-count" aria-live="polite" aria-label="Passos utilizados">
-            <span>Passos <span id="step-value">0/4</span></span>
-            <span class="score-count">⭐ <span id="score-count">100</span> pts</span>
+            <span class="steps-label">Passos <span id="step-value">0/4</span></span>
+            <span class="score-count" id="score-badge" title="Sua pontuação na fase atual">
+              <span class="score-star" aria-hidden="true">⭐</span>
+              <span class="score-num" id="score-count">100</span>
+              <span class="score-unit">pts</span>
+            </span>
           </p>
         </div>
       </div>
@@ -238,17 +242,31 @@
 
   <div class="modal-backdrop" id="tutorial-modal" inert>
     <section class="win-card tutorial-card" id="tutorial-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
-      <div class="tutorial-card-header">
-        <h2 class="win-title" id="tutorial-title">Como jogar</h2>
-        <button type="button" class="tutorial-skip-icon-btn" id="btn-skip-tutorial-icon" title="Pular tutorial" aria-label="Pular tutorial">✕</button>
-      </div>
-      <p class="tutorial-progress" id="tutorial-progress" aria-live="polite"></p>
+      <header class="tutorial-card-header">
+        <div class="tutorial-header-info">
+          <h2 class="tutorial-card-title" id="tutorial-title">Como jogar</h2>
+          <span class="tutorial-progress-pill" id="tutorial-progress" aria-live="polite"></span>
+        </div>
+        <button type="button" class="tutorial-skip-btn" id="btn-skip-tutorial" title="Pular tutorial" aria-label="Pular tutorial">
+          <span>Pular</span>
+          <span class="tutorial-skip-x" aria-hidden="true">✕</span>
+        </button>
+        <button type="button" class="tutorial-skip-icon-btn" id="btn-skip-tutorial-icon" hidden aria-hidden="true" tabindex="-1"></button>
+      </header>
       <p class="tutorial-step-text" id="tutorial-step-text"></p>
       <div class="tutorial-navigation">
-        <button type="button" class="action-pill-btn" id="btn-skip-tutorial">Pular</button>
-        <button type="button" class="action-pill-btn" id="btn-previous-tutorial">Anterior</button>
-        <button type="button" class="btn-next-level" id="btn-next-tutorial">Próximo</button>
-        <button type="button" class="btn-next-level" id="btn-close-tutorial">Começar</button>
+        <button type="button" class="btn-tutorial-prev" id="btn-previous-tutorial" aria-label="Voltar para a etapa anterior">
+          <span class="btn-arrow" aria-hidden="true">←</span>
+          <span>Anterior</span>
+        </button>
+        <button type="button" class="btn-next-level btn-tutorial-next" id="btn-next-tutorial" aria-label="Avançar para a próxima etapa">
+          <span>Próximo</span>
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </button>
+        <button type="button" class="btn-next-level btn-tutorial-next btn-tutorial-finish" id="btn-close-tutorial" aria-label="Concluir tutorial e começar a jogar">
+          <span>Começar</span>
+          <span class="btn-check" aria-hidden="true">✓</span>
+        </button>
       </div>
     </section>
   </div>

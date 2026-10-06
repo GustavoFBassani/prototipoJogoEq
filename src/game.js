@@ -271,6 +271,9 @@ export function showTutorialStep(game, index) {
   if (game.els.btnSkipTutorial) {
     game.els.btnSkipTutorial.hidden = index === TUTORIAL_STEPS.length - 1;
   }
+  if (game.els.btnSkipTutorialIcon) {
+    game.els.btnSkipTutorialIcon.hidden = index === TUTORIAL_STEPS.length - 1;
+  }
   game.tutorialTarget?.classList.remove('tutorial-highlight');
   game.tutorialTarget = null;
 
@@ -854,7 +857,15 @@ export function bootGame({ sound, particles, levels, activityName, storage } = {
       const minimum = game.levels[game.currentLevelIndex]?.minSteps ?? game.minimumSteps;
       const score = scoreForSteps(game.steps, minimum);
       els.stepValue.textContent = minimum ? `${game.steps}/${minimum}` : String(game.steps);
-      if (els.scoreCount) els.scoreCount.textContent = score === null ? '—' : String(score);
+      if (els.scoreCount) {
+        els.scoreCount.textContent = score === null ? '—' : String(score);
+        const scoreBadge = els.scoreCount.closest('.score-count');
+        if (scoreBadge && scoreBadge.classList) {
+          scoreBadge.classList.remove('score-bump');
+          if ('offsetWidth' in scoreBadge) void scoreBadge.offsetWidth;
+          scoreBadge.classList.add('score-bump');
+        }
+      }
       els.stepCount.setAttribute(
         'aria-label',
         minimum
