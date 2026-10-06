@@ -1,7 +1,25 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Operation } from '../keys.js';
 import { scoreForSteps } from '../win.js';
-import { advanceFromWinModal, beginOperation, captionText, handleGameKeydown, hintButtonVisible, hintUsesHtml, optimizedCustomSteps, resetCurrentLevel, stepOpValue, updateOpValueForOperand } from '../game.js';
+import {
+  advanceFromWinModal,
+  beginOperation,
+  calculateTutorialPosition,
+  captionText,
+  closeTutorial,
+  handleGameKeydown,
+  hasSeenTutorial,
+  hintButtonVisible,
+  hintUsesHtml,
+  optimizedCustomSteps,
+  resetCurrentLevel,
+  setTutorialSeen,
+  showTutorialStep,
+  stepOpValue,
+  TUTORIAL_SEEN_STORAGE_KEY,
+  TUTORIAL_STEPS,
+  updateOpValueForOperand,
+} from '../game.js';
 
 function mockModal(active) {
   const classes = new Set(active ? ['active'] : []);
@@ -15,7 +33,7 @@ function mockModal(active) {
   };
 }
 
-function mockGame({ modalActive = false, pendingOperation = null, currentLevelIndex = 0, operandValue = '1', operand = 'number' } = {}) {
+function mockGame({ modalActive = false, tutorialActive = false, pendingOperation = null, currentLevelIndex = 0, operandValue = '1', operand = 'number' } = {}) {
   let checkedOperand = operand;
   return {
     currentLevelIndex,
@@ -23,10 +41,20 @@ function mockGame({ modalActive = false, pendingOperation = null, currentLevelIn
     completedLevels: new Set(),
     pendingOperation,
     loadLevel: vi.fn(),
+    tutor: { hush: vi.fn() },
     els: {
       winModal: mockModal(modalActive),
       levelsModal: mockModal(false),
       customModal: mockModal(false),
+      tutorialModal: mockModal(tutorialActive),
+      tutorialCard: { style: {} },
+      tutorialProgress: { textContent: '' },
+      tutorialStepText: { textContent: '' },
+      btnPreviousTutorial: { hidden: false },
+      btnNextTutorial: { hidden: false },
+      btnCloseTutorial: { hidden: false },
+      btnSkipTutorial: { hidden: false },
+      btnSkipTutorialIcon: { hidden: false },
       opNumberValue: { id: 'op-number-value', tagName: 'INPUT', isContentEditable: false, value: operandValue },
       opNumberNote: { hidden: true, textContent: '' },
       operandSelector: {
@@ -385,5 +413,178 @@ describe('activity mode helpers', () => {
 
   it('leaves the caption empty in campaign', () => {
     expect(captionText(campaignGame, 0)).toBe('');
+  });
+});
+
+function createMockStorage(initial = {}) {
+  const map = new Map(Object.entries(initial));
+  return {
+    getItem: vi.fn((key) => map.get(key) ?? null),
+    setItem: vi.fn((key, value) => map.set(key, String(value))),
+    removeItem: vi.fn((key) => map.delete(key)),
+  };
+}
+
+describe('calculateTutorialPosition', () => {
+  it('centers the card when targetRect is missing or has zero dimensions', () => {
+    const pos = calculateTutorialPosition({
+      targetRect: null,
+      cardWidth: 400,
+      cardHeight: 200,
+      viewportWidth: 1000,
+      viewportHeight: 800,
+      margin: 16,
+    });
+    expect(pos).toEqual({ left: 300, top: 300, placement: 'center' });
+  });
+
+  it('places the card below when target is in the upper half and fits below without overlap', () => {
+    const targetRect = { top: 60, bottom: 120, left: 450, right: 750, width: 300, height: 60 };
+    const pos = calculateTutorialPosition({
+      targetRect,
+      cardWidth: 400,
+      cardHeight: 200,
+      viewportWidth: 1200,
+      viewportHeight: 800,
+      gap: 18,
+      margin: 16,
+    });
+    expect(pos.placement).toBe('below');
+    expect(pos.top).toBe(138); // 120 + 18
+    expect(pos.left).toBe(400); // centered horizontally: 600 - 200
+    expect(pos.top).toBeGreaterThanOrEqual(targetRect.bottom);
+  });
+
+  it('places the card above when target is in the lower half and fits above without overlap', () => {
+    const targetRect = { top: 560, bottom: 680, left: 300, right: 900, width: 600, height: 120 };
+    const pos = calculateTutorialPosition({
+      targetRect,
+      cardWidth: 400,
+      cardHeight: 200,
+      viewportWidth: 1200,
+      viewportHeight: 800,
+      gap: 18,
+      margin: 16,
+    });
+    expect(pos.placement).toBe('above');
+    expect(pos.top).toBe(342); // 560 - 18 - 200
+    expect(pos.left).toBe(400); // 600 - 200
+    expect(pos.top + 200).toBeLessThanOrEqual(targetRect.top);
+  });
+
+  it('places the card to the side when vertical space is constrained', () => {
+    const targetRect = { top: 100, bottom: 400, left: 350, right: 650, width: 300, height: 300 };
+    const pos = calculateTutorialPosition({
+      targetRect,
+      cardWidth: 300,
+      cardHeight: 180,
+      viewportWidth: 1000,
+      viewportHeight: 500,
+      gap: 18,
+      margin: 16,
+    });
+    expect(pos.placement).toBe('right');
+    expect(pos.left).toBe(668); // 650 + 18
+    expect(pos.left).toBeGreaterThanOrEqual(targetRect.right);
+  });
+
+  it('clamps coordinates to stay within screen margins', () => {
+    const targetRect = { top: 10, bottom: 40, left: 10, right: 50, width: 40, height: 30 };
+    const pos = calculateTutorialPosition({
+      targetRect,
+      cardWidth: 400,
+      cardHeight: 200,
+      viewportWidth: 500,
+      viewportHeight: 400,
+      gap: 18,
+      margin: 16,
+    });
+    expect(pos.left).toBe(16);
+    expect(pos.top).toBe(58);
+  });
+});
+
+describe('hasSeenTutorial and setTutorialSeen', () => {
+  it('returns false when storage is null or key is missing', () => {
+    expect(hasSeenTutorial(null)).toBe(false);
+    const storage = createMockStorage();
+    expect(hasSeenTutorial(storage)).toBe(false);
+  });
+
+  it('returns true when storage has key equal to "true"', () => {
+    const storage = createMockStorage({ [TUTORIAL_SEEN_STORAGE_KEY]: 'true' });
+    expect(hasSeenTutorial(storage)).toBe(true);
+  });
+
+  it('sets and removes tutorial seen status in storage', () => {
+    const storage = createMockStorage();
+    setTutorialSeen(storage, true);
+    expect(storage.setItem).toHaveBeenCalledWith(TUTORIAL_SEEN_STORAGE_KEY, 'true');
+    expect(hasSeenTutorial(storage)).toBe(true);
+
+    setTutorialSeen(storage, false);
+    expect(storage.removeItem).toHaveBeenCalledWith(TUTORIAL_SEEN_STORAGE_KEY);
+    expect(hasSeenTutorial(storage)).toBe(false);
+  });
+
+  it('safely catches storage exceptions without throwing', () => {
+    const brokenStorage = {
+      getItem() { throw new Error('SecurityError: blocked'); },
+      setItem() { throw new Error('QuotaExceededError'); },
+      removeItem() { throw new Error('Blocked'); },
+    };
+    expect(hasSeenTutorial(brokenStorage)).toBe(false);
+    expect(() => setTutorialSeen(brokenStorage, true)).not.toThrow();
+  });
+});
+
+describe('tutorial modal skip and close', () => {
+  it('closes tutorial and marks it as seen in storage', () => {
+    const storage = createMockStorage();
+    const game = mockGame({ tutorialActive: true });
+    game.storage = storage;
+    closeTutorial(game);
+
+    expect(game.els.tutorialModal.classList.contains('active')).toBe(false);
+    expect(game.els.tutorialModal.inert).toBe(true);
+    expect(game.tutor.hush).toHaveBeenCalled();
+    expect(storage.setItem).toHaveBeenCalledWith(TUTORIAL_SEEN_STORAGE_KEY, 'true');
+  });
+
+  it('closes tutorial when Escape key is pressed', () => {
+    const storage = createMockStorage();
+    const game = mockGame({ tutorialActive: true });
+    game.storage = storage;
+    const event = keyEvent('Escape', { tagName: 'BODY' });
+
+    handleGameKeydown(game, event);
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(game.els.tutorialModal.classList.contains('active')).toBe(false);
+    expect(storage.setItem).toHaveBeenCalledWith(TUTORIAL_SEEN_STORAGE_KEY, 'true');
+  });
+
+  it('configures skip button visibility on tutorial steps', () => {
+    const game = mockGame({ tutorialActive: true });
+
+    // Step 0: skip should be visible
+    showTutorialStep(game, 0);
+    expect(game.els.btnSkipTutorial.hidden).toBe(false);
+    expect(game.els.btnPreviousTutorial.hidden).toBe(true);
+    expect(game.els.btnNextTutorial.hidden).toBe(false);
+    expect(game.els.btnCloseTutorial.hidden).toBe(true);
+
+    // Step 1: skip should be visible
+    showTutorialStep(game, 1);
+    expect(game.els.btnSkipTutorial.hidden).toBe(false);
+    expect(game.els.btnPreviousTutorial.hidden).toBe(false);
+    expect(game.els.btnNextTutorial.hidden).toBe(false);
+    expect(game.els.btnCloseTutorial.hidden).toBe(true);
+
+    // Last step: skip should be hidden (Começar is shown)
+    showTutorialStep(game, TUTORIAL_STEPS.length - 1);
+    expect(game.els.btnSkipTutorial.hidden).toBe(true);
+    expect(game.els.btnNextTutorial.hidden).toBe(true);
+    expect(game.els.btnCloseTutorial.hidden).toBe(false);
   });
 });

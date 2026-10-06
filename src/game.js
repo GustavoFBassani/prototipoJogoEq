@@ -7,27 +7,27 @@ import { Operation, Operand, operationFromKey, operationWithOperand, isTypingTar
 
 export const TUTORIAL_STEPS = [
   {
-    text: 'A equação funciona como uma balança: os dois lados precisam continuar com o mesmo valor.',
+    text: 'O objetivo do jogo é deixar o x sozinho de um dos lados para descobrir o seu valor. A equação aqui em cima mostra o que está em cada lado!',
     target: '.math-formula-wrapper',
   },
   {
-    text: 'Escolha aqui uma operação para aplicar a mesma conta nos dois lados.',
+    text: 'Para isolar o x, você pode somar, subtrair, multiplicar ou dividir. Mas atenção: tudo o que você fizer de um lado, também será feito do outro para manter o equilíbrio nos dois lados!',
     target: '.operations-panel',
   },
   {
-    text: 'As peças ficam nestes pratos. Arraste peças iguais no mesmo lado para juntá-las ou cancelá-las.',
+    text: 'Estes são os pratos da balança com as peças. Você pode arrastar peças semelhantes no mesmo lado para juntar termos ou cancelá-los.',
     target: '.containers-grid',
   },
   {
-    text: 'O objetivo é resolver até que o x fique sozinho.',
+    text: 'A equação se atualiza a cada movimento até que o x fique sozinho com a solução (por exemplo: x = 3)!',
     target: '.math-formula-wrapper',
   },
   {
-    text: 'Acompanhe aqui os passos usados e os pontos. Quanto menos passos, maior a pontuação.',
+    text: 'Acompanhe aqui os seus passos e a sua pontuação. Tente resolver a equação no menor número de jogadas para garantir a pontuação máxima!',
     target: '#step-count',
   },
   {
-    text: 'Se precisar, toque em Dica para ver uma orientação da fase.',
+    text: 'Ficou em dúvida sobre o que fazer? Clique em Dica para receber uma ajuda sobre o próximo passo.',
     target: '#btn-hint',
   },
 ];
@@ -46,11 +46,14 @@ function queryEls() {
     winSolText: document.getElementById('win-sol-text'),
     winScore: document.getElementById('win-score'),
     tutorialModal: document.getElementById('tutorial-modal'),
+    tutorialCard: document.getElementById('tutorial-card') || document.querySelector('.tutorial-card'),
     tutorialProgress: document.getElementById('tutorial-progress'),
     tutorialStepText: document.getElementById('tutorial-step-text'),
     btnPreviousTutorial: document.getElementById('btn-previous-tutorial'),
     btnNextTutorial: document.getElementById('btn-next-tutorial'),
     btnCloseTutorial: document.getElementById('btn-close-tutorial'),
+    btnSkipTutorial: document.getElementById('btn-skip-tutorial'),
+    btnSkipTutorialIcon: document.getElementById('btn-skip-tutorial-icon'),
     levelsModal: document.getElementById('levels-modal'),
     levelsGrid: document.getElementById('levels-grid'),
     customModal: document.getElementById('custom-modal'),
@@ -108,13 +111,156 @@ export function optimizedCustomSteps(lx, lc, rx, rc) {
   return Math.max(1, steps);
 }
 
-function showTutorial(game) {
+export const TUTORIAL_SEEN_STORAGE_KEY = 'equalab:tutorial-seen';
+
+export function hasSeenTutorial(storage = (typeof window !== 'undefined' ? window.localStorage : null)) {
+  try {
+    return storage?.getItem(TUTORIAL_SEEN_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function setTutorialSeen(storage = (typeof window !== 'undefined' ? window.localStorage : null), seen = true) {
+  try {
+    if (seen) {
+      storage?.setItem(TUTORIAL_SEEN_STORAGE_KEY, 'true');
+    } else {
+      storage?.removeItem(TUTORIAL_SEEN_STORAGE_KEY);
+    }
+  } catch {
+    /* storage full or blocked */
+  }
+}
+
+export function calculateTutorialPosition({
+  targetRect,
+  cardWidth,
+  cardHeight,
+  viewportWidth,
+  viewportHeight,
+  gap = 18,
+  margin = 16,
+}) {
+  if (
+    !targetRect ||
+    typeof targetRect.top !== 'number' ||
+    typeof targetRect.left !== 'number' ||
+    (targetRect.width <= 0 && targetRect.height <= 0)
+  ) {
+    return {
+      left: Math.max(margin, Math.round((viewportWidth - cardWidth) / 2)),
+      top: Math.max(margin, Math.round((viewportHeight - cardHeight) / 2)),
+      placement: 'center',
+    };
+  }
+
+  const spaceAbove = targetRect.top - margin;
+  const spaceBelow = viewportHeight - targetRect.bottom - margin;
+  const spaceLeft = targetRect.left - margin;
+  const spaceRight = viewportWidth - targetRect.right - margin;
+
+  const fitsAbove = spaceAbove >= cardHeight + gap;
+  const fitsBelow = spaceBelow >= cardHeight + gap;
+  const fitsLeft = spaceLeft >= cardWidth + gap;
+  const fitsRight = spaceRight >= cardWidth + gap;
+
+  const targetCenterY = targetRect.top + targetRect.height / 2;
+  const isUpperHalf = targetCenterY < viewportHeight / 2;
+
+  let placement;
+  if (isUpperHalf) {
+    if (fitsBelow) {
+      placement = 'below';
+    } else if (fitsAbove) {
+      placement = 'above';
+    } else if (fitsRight) {
+      placement = 'right';
+    } else if (fitsLeft) {
+      placement = 'left';
+    }
+  } else {
+    if (fitsAbove) {
+      placement = 'above';
+    } else if (fitsBelow) {
+      placement = 'below';
+    } else if (fitsRight) {
+      placement = 'right';
+    } else if (fitsLeft) {
+      placement = 'left';
+    }
+  }
+
+  if (!placement) {
+    const spaces = [
+      { name: 'below', space: spaceBelow },
+      { name: 'above', space: spaceAbove },
+      { name: 'right', space: spaceRight },
+      { name: 'left', space: spaceLeft },
+    ];
+    spaces.sort((a, b) => b.space - a.space);
+    placement = spaces[0].name;
+  }
+
+  let left;
+  let top;
+
+  if (placement === 'below') {
+    top = targetRect.bottom + gap;
+    const targetCenterX = targetRect.left + targetRect.width / 2;
+    left = targetCenterX - cardWidth / 2;
+  } else if (placement === 'above') {
+    top = targetRect.top - gap - cardHeight;
+    const targetCenterX = targetRect.left + targetRect.width / 2;
+    left = targetCenterX - cardWidth / 2;
+  } else if (placement === 'right') {
+    left = targetRect.right + gap;
+    const targetCenterY = targetRect.top + targetRect.height / 2;
+    top = targetCenterY - cardHeight / 2;
+  } else {
+    left = targetRect.left - gap - cardWidth;
+    const targetCenterY = targetRect.top + targetRect.height / 2;
+    top = targetCenterY - cardHeight / 2;
+  }
+
+  const maxLeft = Math.max(margin, viewportWidth - cardWidth - margin);
+  const maxTop = Math.max(margin, viewportHeight - cardHeight - margin);
+
+  left = Math.max(margin, Math.min(maxLeft, Math.round(left)));
+  top = Math.max(margin, Math.min(maxTop, Math.round(top)));
+
+  return { left, top, placement };
+}
+
+export function positionTutorialCard(game, targetRect) {
+  if (!game.els?.tutorialCard) return;
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+  const cardWidth = game.els.tutorialCard.offsetWidth || 380;
+  const cardHeight = game.els.tutorialCard.offsetHeight || 220;
+
+  const { left, top } = calculateTutorialPosition({
+    targetRect,
+    cardWidth,
+    cardHeight,
+    viewportWidth,
+    viewportHeight,
+    gap: 18,
+    margin: 16,
+  });
+
+  game.els.tutorialCard.style.left = `${left}px`;
+  game.els.tutorialCard.style.top = `${top}px`;
+}
+
+export function showTutorial(game) {
+  setTutorialSeen(game.storage, true);
   game.els.tutorialModal.inert = false;
   game.els.tutorialModal.classList.add('active');
   showTutorialStep(game, 0);
 }
 
-function showTutorialStep(game, index) {
+export function showTutorialStep(game, index) {
   const step = TUTORIAL_STEPS[index];
   game.tutorialStepIndex = index;
   game.els.tutorialProgress.textContent = `Etapa ${index + 1} de ${TUTORIAL_STEPS.length}`;
@@ -122,33 +268,39 @@ function showTutorialStep(game, index) {
   game.els.btnPreviousTutorial.hidden = index === 0;
   game.els.btnNextTutorial.hidden = index === TUTORIAL_STEPS.length - 1;
   game.els.btnCloseTutorial.hidden = index !== TUTORIAL_STEPS.length - 1;
+  if (game.els.btnSkipTutorial) {
+    game.els.btnSkipTutorial.hidden = index === TUTORIAL_STEPS.length - 1;
+  }
   game.tutorialTarget?.classList.remove('tutorial-highlight');
   game.tutorialTarget = null;
 
-  const target = document.querySelector(step.target);
+  const target = typeof document !== 'undefined' ? document.querySelector(step.target) : null;
   if (target && !target.hidden) {
-    target.scrollIntoView?.({ block: 'center', inline: 'center' });
+    target.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
     const bounds = target.getBoundingClientRect();
     if (bounds.width > 0 && bounds.height > 0) {
       target.classList.add('tutorial-highlight');
       game.tutorialTarget = target;
       game.els.tutorialModal.classList.add('tutorial-spotlight');
-      game.els.tutorialModal.style.setProperty('--tutorial-spotlight-x', `${bounds.left + bounds.width / 2}px`);
-      game.els.tutorialModal.style.setProperty('--tutorial-spotlight-y', `${bounds.top + bounds.height / 2}px`);
-      game.els.tutorialModal.style.setProperty(
+      game.els.tutorialModal.style?.setProperty('--tutorial-spotlight-x', `${bounds.left + bounds.width / 2}px`);
+      game.els.tutorialModal.style?.setProperty('--tutorial-spotlight-y', `${bounds.top + bounds.height / 2}px`);
+      game.els.tutorialModal.style?.setProperty(
         '--tutorial-spotlight-radius',
         `${Math.hypot(bounds.width, bounds.height) / 2 + 18}px`,
       );
+      positionTutorialCard(game, bounds);
     } else {
       game.els.tutorialModal.classList.remove('tutorial-spotlight');
+      positionTutorialCard(game, null);
     }
   } else {
     game.els.tutorialModal.classList.remove('tutorial-spotlight');
+    positionTutorialCard(game, null);
   }
-
 }
 
-function closeTutorial(game) {
+export function closeTutorial(game) {
+  setTutorialSeen(game.storage, true);
   game.els.tutorialModal.classList.remove('active', 'tutorial-spotlight');
   game.els.tutorialModal.inert = true;
   game.tutorialTarget?.classList.remove('tutorial-highlight');
@@ -157,13 +309,14 @@ function closeTutorial(game) {
 }
 
 function writeHint(game, lvl) {
+  if (!game.els.instructionHint) return;
   if (hintUsesHtml(game)) game.els.instructionHint.innerHTML = lvl.hint;
   else game.els.instructionHint.textContent = lvl.hint ?? '';
 }
 
 function setHintVisible(game, open) {
   game.hintOpen = open;
-  game.els.instructionHint.hidden = !open;
+  if (game.els.instructionHint) game.els.instructionHint.hidden = !open;
   game.els.btnHint.setAttribute('aria-pressed', open ? 'true' : 'false');
 }
 
@@ -341,10 +494,15 @@ export function resetCurrentLevel(game) {
 }
 
 export function handleGameKeydown(game, e) {
-  if (
-    game.els.tutorialModal?.classList.contains('active')
-    || game.els.creditsModal?.classList.contains('active')
-  ) return;
+  if (game.els.tutorialModal?.classList.contains('active')) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeTutorial(game);
+    }
+    return;
+  }
+
+  if (game.els.creditsModal?.classList.contains('active')) return;
 
   if (e.key === 'Escape' && game.pendingOperation) {
     e.preventDefault();
@@ -425,6 +583,14 @@ export function loadLevel(game, index) {
 function bindControls(game) {
   game.els.btnTutorial.addEventListener('click', () => showTutorial(game));
 
+  game.els.btnSkipTutorial?.addEventListener('click', () => {
+    closeTutorial(game);
+  });
+
+  game.els.btnSkipTutorialIcon?.addEventListener('click', () => {
+    closeTutorial(game);
+  });
+
   game.els.btnPreviousTutorial.addEventListener('click', () => {
     if (game.tutorialStepIndex > 0) showTutorialStep(game, game.tutorialStepIndex - 1);
   });
@@ -476,9 +642,11 @@ function bindControls(game) {
     const next = !game.hintOpen;
     setHintVisible(game, next);
     if (next) {
-      game.els.instructionHint.style.animation = 'none';
-      void game.els.instructionHint.offsetWidth;
-      game.els.instructionHint.style.animation = 'pulse-target 0.6s 2';
+      if (game.els.instructionHint) {
+        game.els.instructionHint.style.animation = 'none';
+        void game.els.instructionHint.offsetWidth;
+        game.els.instructionHint.style.animation = 'pulse-target 0.6s 2';
+      }
       game.tutor?.speakHint(curLvl.hint);
     } else {
       game.tutor?.hush();
@@ -648,12 +816,14 @@ function bindControls(game) {
   window.addEventListener('keydown', (e) => handleGameKeydown(game, e));
 }
 
-export function bootGame({ sound, particles, levels, activityName }) {
+export function bootGame({ sound, particles, levels, activityName, storage } = {}) {
   const els = queryEls();
   const activity = Array.isArray(levels);
+  const appStorage = storage ?? (typeof window !== 'undefined' ? window.localStorage : null);
   const game = {
     sound,
     particles,
+    storage: appStorage,
     activity,
     activityName: activity ? activityName ?? '' : '',
     levels: (activity ? levels : LEVELS).map((lvl) => ({
@@ -720,6 +890,18 @@ export function bootGame({ sound, particles, levels, activityName }) {
 
   bindControls(game);
   loadLevel(game, 0);
-  showTutorial(game);
+
+  if (!hasSeenTutorial(appStorage)) {
+    showTutorial(game);
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', () => {
+      if (game.els.tutorialModal?.classList.contains('active')) {
+        showTutorialStep(game, game.tutorialStepIndex);
+      }
+    });
+  }
+
   return game;
 }

@@ -51,9 +51,6 @@
             <span class="math-equal-sign">=</span>
             <span class="math-side-rhs" id="math-rhs">5</span>
           </div>
-          <div class="hint-slot">
-            <div class="instruction-hint" id="instruction-hint" hidden></div>
-          </div>
         </div>
 
         <div class="containers-grid">
@@ -240,11 +237,15 @@
   </div>
 
   <div class="modal-backdrop" id="tutorial-modal" inert>
-    <section class="win-card tutorial-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
-      <h2 class="win-title" id="tutorial-title">Como jogar</h2>
+    <section class="win-card tutorial-card" id="tutorial-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+      <div class="tutorial-card-header">
+        <h2 class="win-title" id="tutorial-title">Como jogar</h2>
+        <button type="button" class="tutorial-skip-icon-btn" id="btn-skip-tutorial-icon" title="Pular tutorial" aria-label="Pular tutorial">✕</button>
+      </div>
       <p class="tutorial-progress" id="tutorial-progress" aria-live="polite"></p>
       <p class="tutorial-step-text" id="tutorial-step-text"></p>
       <div class="tutorial-navigation">
+        <button type="button" class="action-pill-btn" id="btn-skip-tutorial">Pular</button>
         <button type="button" class="action-pill-btn" id="btn-previous-tutorial">Anterior</button>
         <button type="button" class="btn-next-level" id="btn-next-tutorial">Próximo</button>
         <button type="button" class="btn-next-level" id="btn-close-tutorial">Começar</button>
