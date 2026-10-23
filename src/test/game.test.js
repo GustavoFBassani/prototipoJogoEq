@@ -18,6 +18,7 @@ import {
   stepOpValue,
   TUTORIAL_SEEN_STORAGE_KEY,
   TUTORIAL_STEPS,
+  toggleHint,
   updateOpValueForOperand,
 } from '../game.js';
 
@@ -439,6 +440,36 @@ describe('activity mode helpers', () => {
 
   it('leaves the caption empty in campaign', () => {
     expect(captionText(campaignGame, 0)).toBe('');
+  });
+});
+
+describe('toggleHint', () => {
+  it('counts the first hint click as one step and ignores later clicks', () => {
+    const game = {
+      levels: [{ hint: 'Tire o 2 dos dois lados.' }],
+      currentLevelIndex: 0,
+      activity: false,
+      hintOpen: false,
+      hintUsedThisLevel: false,
+      recordStep: vi.fn(),
+      tutor: { speakHint: vi.fn(), hush: vi.fn() },
+      els: {
+        instructionHint: { hidden: true, style: {}, offsetWidth: 0 },
+        btnHint: { setAttribute: vi.fn() },
+      },
+    };
+
+    toggleHint(game);
+    expect(game.recordStep).toHaveBeenCalledOnce();
+    expect(game.hintOpen).toBe(true);
+    expect(game.tutor.speakHint).toHaveBeenCalledWith('Tire o 2 dos dois lados.');
+
+    toggleHint(game);
+    toggleHint(game);
+    expect(game.recordStep).toHaveBeenCalledOnce();
+    expect(game.hintOpen).toBe(true);
+    expect(game.tutor.speakHint).toHaveBeenCalledTimes(2);
+    expect(game.tutor.hush).toHaveBeenCalledOnce();
   });
 });
 

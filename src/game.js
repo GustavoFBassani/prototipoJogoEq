@@ -98,6 +98,27 @@ export function hintButtonVisible(game, index) {
   return String(game.levels[index]?.hint ?? '').trim() !== '';
 }
 
+export function toggleHint(game) {
+  const curLvl = game.levels[game.currentLevelIndex];
+  writeHint(game, curLvl);
+  if (!game.hintUsedThisLevel) {
+    game.hintUsedThisLevel = true;
+    game.recordStep();
+  }
+  const next = !game.hintOpen;
+  setHintVisible(game, next);
+  if (next) {
+    if (game.els.instructionHint) {
+      game.els.instructionHint.style.animation = 'none';
+      void game.els.instructionHint.offsetWidth;
+      game.els.instructionHint.style.animation = 'pulse-target 0.6s 2';
+    }
+    game.tutor?.speakHint(curLvl.hint);
+  } else {
+    game.tutor?.hush();
+  }
+}
+
 export function captionText(game, index) {
   if (!game.activity) return '';
   return `${game.activityName ?? ''} · ${game.levels[index]?.title ?? ''}`;
@@ -552,6 +573,7 @@ export function handleGameKeydown(game, e) {
 
 export function loadLevel(game, index) {
   game.currentLevelIndex = index;
+  game.hintUsedThisLevel = false;
   const lvl = game.levels[index];
   game.steps = 0;
   game.stepCount = 0;
@@ -641,20 +663,7 @@ function bindControls(game) {
   });
 
   game.els.btnHint.addEventListener('click', () => {
-    const curLvl = game.levels[game.currentLevelIndex];
-    writeHint(game, curLvl);
-    const next = !game.hintOpen;
-    setHintVisible(game, next);
-    if (next) {
-      if (game.els.instructionHint) {
-        game.els.instructionHint.style.animation = 'none';
-        void game.els.instructionHint.offsetWidth;
-        game.els.instructionHint.style.animation = 'pulse-target 0.6s 2';
-      }
-      game.tutor?.speakHint(curLvl.hint);
-    } else {
-      game.tutor?.hush();
-    }
+    toggleHint(game);
   });
 
   game.els.btnNextLevel.addEventListener('click', () => {
@@ -844,6 +853,7 @@ export function bootGame({ sound, particles, levels, activityName, storage, defe
     completedLevels: new Set(),
     levelScores: new Map(),
     hintOpen: false,
+    hintUsedThisLevel: false,
     pendingOperation: null,
     steps: 0,
     tutorialStepIndex: 0,
