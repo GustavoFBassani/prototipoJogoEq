@@ -39,7 +39,7 @@ describe('initParticles', () => {
     );
   });
 
-  it('stops the end-game shower after 26 bursts', () => {
+  it('celebrates the final win with side fountains and stops the shower after 26 bursts', () => {
     const timers = [];
     const clearInterval = vi.fn();
     const { fire, particles } = createParticles({
@@ -54,10 +54,20 @@ describe('initParticles', () => {
     particles.createEndGameConfettiShower();
     for (let i = 0; i < 26; i += 1) timers[0]();
 
-    expect(fire).toHaveBeenCalledTimes(26);
-    expect(fire.mock.calls[0][0].particleCount).toBe(50);
-    expect(fire.mock.calls[0][0].origin.x).toBe(0.2);
-    expect(fire.mock.calls[0][0].origin.y).toBeCloseTo(0.14);
+    expect(fire).toHaveBeenCalledTimes(28);
+    expect(fire.mock.calls[0][0]).toMatchObject({
+      particleCount: 70,
+      angle: 60,
+      origin: { x: 0.08, y: 0.78 },
+    });
+    expect(fire.mock.calls[1][0]).toMatchObject({
+      particleCount: 70,
+      angle: 120,
+      origin: { x: 0.92, y: 0.78 },
+    });
+    expect(fire.mock.calls[2][0].particleCount).toBe(50);
+    expect(fire.mock.calls[2][0].origin.x).toBe(0.2);
+    expect(fire.mock.calls[2][0].origin.y).toBeCloseTo(0.14);
     expect(clearInterval).toHaveBeenCalledWith(9);
   });
 });

@@ -481,6 +481,7 @@ export function advanceFromWinModal(game) {
 
   if (isFinalLevel) {
     game.completedLevels.clear();
+    game.levelScores?.clear();
     game.loadLevel(0);
   } else if (game.currentLevelIndex < game.levels.length - 1) {
     game.loadLevel(game.currentLevelIndex + 1);
@@ -841,6 +842,7 @@ export function bootGame({ sound, particles, levels, activityName, storage } = {
     rhsItems: [],
     itemIdCounter: 1,
     completedLevels: new Set(),
+    levelScores: new Map(),
     hintOpen: false,
     pendingOperation: null,
     steps: 0,

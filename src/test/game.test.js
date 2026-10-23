@@ -151,6 +151,18 @@ describe('advanceFromWinModal', () => {
     expect(advanceFromWinModal(game)).toBe(true);
     expect(game.loadLevel).toHaveBeenCalledWith(1);
   });
+
+  it('clears recorded phase scores when restarting after final completion', () => {
+    const game = mockGame({ modalActive: true });
+    game.completedLevels = new Set([0, 1]);
+    game.levelScores = new Map([[0, 80], [1, 90]]);
+
+    expect(advanceFromWinModal(game)).toBe(true);
+
+    expect(game.completedLevels.size).toBe(0);
+    expect(game.levelScores.size).toBe(0);
+    expect(game.loadLevel).toHaveBeenCalledWith(0);
+  });
 });
 
 describe('resetCurrentLevel', () => {

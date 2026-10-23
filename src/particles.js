@@ -57,6 +57,23 @@ export function initParticles(options = {}) {
     },
 
     createEndGameConfettiShower() {
+      fire({
+        particleCount: 70,
+        angle: 60,
+        spread: 55,
+        startVelocity: 48,
+        origin: { x: 0.08, y: 0.78 },
+        colors: CONFETTI_COLORS,
+      });
+      fire({
+        particleCount: 70,
+        angle: 120,
+        spread: 55,
+        startVelocity: 48,
+        origin: { x: 0.92, y: 0.78 },
+        colors: CONFETTI_COLORS,
+      });
+
       let count = 0;
       const interval = setIntervalFn(() => {
         fire({

@@ -197,14 +197,31 @@
   <div class="modal-backdrop" id="win-modal" inert>
     <div class="win-card">
       <div class="win-trophy">🏆</div>
+      <p class="win-finale-label" id="win-finale-label" hidden>FIM DE JOGO</p>
       <h2 class="win-title">Resolvida</h2>
+      <div
+        class="win-progress"
+        id="win-progress"
+        hidden
+        role="progressbar"
+        aria-label="Progresso da jornada"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        aria-valuetext=""
+      >
+        <div class="win-progress-track" aria-hidden="true">
+          <span class="win-progress-fill" id="win-progress-fill"></span>
+        </div>
+        <span class="win-progress-label" id="win-progress-label"></span>
+      </div>
       <div class="win-equation" id="win-sol-text">x = 3</div>
 
       <p class="win-desc" id="win-message">O x ficou sozinho.</p>
       <p class="win-score" id="win-score" aria-live="polite"></p>
-      <button type="button" class="btn-next-level" id="btn-next-level" aria-keyshortcuts="Enter">
+      <p class="win-total-score" id="win-total-score" aria-live="polite" hidden></p>
+      <button type="button" class="btn-next-level" id="btn-next-level">
         <span id="btn-next-level-label">Próxima</span>
-        <kbd>Enter</kbd>
       </button>
     </div>
   </div>
