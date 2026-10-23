@@ -166,6 +166,238 @@ body::before {
   z-index: 4000;
 }
 
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(255, 255, 255, 0.76), rgba(248, 250, 252, 0.94) 68%),
+    var(--bg-primary);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  opacity: 1;
+  transition: opacity 420ms ease, transform 420ms ease;
+}
+
+.welcome-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("./math-pattern.svg");
+  background-repeat: repeat;
+  background-size: 240px;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.welcome-screen.is-leaving {
+  opacity: 0;
+  transform: scale(1.025);
+  pointer-events: none;
+}
+
+.welcome-glow {
+  position: absolute;
+  width: min(56vw, 560px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(2px);
+  pointer-events: none;
+  animation: welcome-glow 4s ease-in-out infinite alternate;
+}
+
+.welcome-glow-one {
+  top: -32%;
+  left: -18%;
+  background: radial-gradient(circle, rgba(110, 170, 193, 0.2), transparent 68%);
+}
+
+.welcome-glow-two {
+  right: -20%;
+  bottom: -38%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.14), transparent 68%);
+  animation-delay: -2s;
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: min(100%, 560px);
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(32px, 7vw, 64px) 24px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.54);
+  box-shadow:
+    0 28px 80px rgba(15, 23, 42, 0.12),
+    0 0 0 8px rgba(79, 139, 158, 0.045),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  text-align: center;
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  animation: welcome-enter 850ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.welcome-mark {
+  position: relative;
+  display: grid;
+  width: clamp(96px, 20vw, 132px);
+  aspect-ratio: 1;
+  place-items: center;
+  margin-bottom: 18px;
+  border: 1px solid rgba(79, 139, 158, 0.2);
+  border-radius: 38%;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(220, 238, 243, 0.8));
+  box-shadow:
+    0 12px 30px rgba(79, 139, 158, 0.16),
+    inset 0 1px 0 #fff;
+  transform: rotate(-5deg);
+}
+
+.welcome-mark-scale {
+  font-size: clamp(56px, 11vw, 76px);
+  line-height: 1;
+  filter: drop-shadow(0 6px 7px rgba(79, 139, 158, 0.2));
+  animation: welcome-scale 2.4s ease-in-out infinite;
+}
+
+.welcome-mark-spark {
+  position: absolute;
+  color: #d99b27;
+  font-size: 22px;
+  animation: welcome-spark 1.8s ease-in-out infinite;
+}
+
+.welcome-mark-spark-left {
+  top: 10px;
+  left: -13px;
+}
+
+.welcome-mark-spark-right {
+  right: -16px;
+  bottom: 15px;
+  color: var(--accent);
+  animation-delay: 0.5s;
+}
+
+.welcome-eyebrow {
+  color: #2c687a;
+  font-family: var(--font-main);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.welcome-title {
+  margin-top: 2px;
+  color: var(--text-primary);
+  font-family: 'Chewy', var(--font-main);
+  font-size: clamp(3.5rem, 12vw, 6.5rem);
+  font-weight: 400;
+  letter-spacing: 0.015em;
+  line-height: 1.05;
+  text-shadow: 0 5px 0 rgba(79, 139, 158, 0.12);
+}
+
+.welcome-tagline {
+  margin-top: 10px;
+  color: var(--text-secondary);
+  font-family: var(--font-main);
+  font-size: clamp(0.98rem, 3vw, 1.15rem);
+  font-weight: 500;
+}
+
+.welcome-equation {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 26px;
+  padding: 10px 22px;
+  border: 1px solid rgba(79, 139, 158, 0.22);
+  border-radius: var(--radius-full);
+  background: rgba(79, 139, 158, 0.08);
+  color: #2c687a;
+  font-family: var(--font-equation);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.welcome-equation-sign {
+  color: var(--text-faint);
+}
+
+@media (max-height: 520px) {
+  .welcome-screen {
+    padding: 12px;
+  }
+
+  .welcome-content {
+    padding: 16px 24px;
+  }
+
+  .welcome-mark {
+    width: 76px;
+    margin-bottom: 8px;
+  }
+
+  .welcome-mark-scale {
+    font-size: 48px;
+  }
+
+  .welcome-title {
+    font-size: 3.5rem;
+  }
+
+  .welcome-tagline {
+    margin-top: 2px;
+  }
+
+  .welcome-equation {
+    margin-top: 12px;
+    padding: 6px 18px;
+  }
+}
+
+@keyframes welcome-enter {
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes welcome-glow {
+  from { transform: scale(0.92); opacity: 0.7; }
+  to { transform: scale(1.08); opacity: 1; }
+}
+
+@keyframes welcome-scale {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-5px) rotate(3deg); }
+}
+
+@keyframes welcome-spark {
+  0%, 100% { opacity: 0.55; transform: scale(0.8) rotate(-12deg); }
+  50% { opacity: 1; transform: scale(1.15) rotate(12deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-screen {
+    transition-duration: 100ms;
+  }
+
+  .welcome-glow,
+  .welcome-content,
+  .welcome-mark-scale,
+  .welcome-mark-spark {
+    animation: none;
+  }
+}
+
 /* ==========================================================================
    Navbar / Header: Liquid Glass Infinito (Edge-to-Edge 100vw Blur 40px)
    ========================================================================== */

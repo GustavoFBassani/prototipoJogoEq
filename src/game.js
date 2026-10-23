@@ -820,7 +820,7 @@ function bindControls(game) {
   window.addEventListener('keydown', (e) => handleGameKeydown(game, e));
 }
 
-export function bootGame({ sound, particles, levels, activityName, storage } = {}) {
+export function bootGame({ sound, particles, levels, activityName, storage, deferTutorial = false } = {}) {
   const els = queryEls();
   const activity = Array.isArray(levels);
   const appStorage = storage ?? (typeof window !== 'undefined' ? window.localStorage : null);
@@ -904,9 +904,10 @@ export function bootGame({ sound, particles, levels, activityName, storage } = {
   bindControls(game);
   loadLevel(game, 0);
 
-  if (!hasSeenTutorial(appStorage)) {
-    showTutorial(game);
-  }
+  game.showTutorialIfNeeded = () => {
+    if (!hasSeenTutorial(appStorage)) showTutorial(game);
+  };
+  if (!deferTutorial) game.showTutorialIfNeeded();
 
   if (typeof window !== 'undefined') {
     window.addEventListener('resize', () => {

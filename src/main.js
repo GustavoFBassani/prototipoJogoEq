@@ -11,6 +11,7 @@ const editor = document.getElementById('editor');
 const located = readSearch(location.search);
 
 if (located.mode === 'editor') {
+  document.getElementById('welcome-screen').hidden = true;
   document.querySelector('body > header').hidden = true;
   document.querySelector('.app').hidden = true;
   editor.hidden = false;
@@ -23,6 +24,27 @@ if (located.mode === 'editor') {
   const levels = play
     ? located.activity.phases.map(({ title, hint, lhs, rhs, minSteps }, i) => ({ id: i + 1, title, hint, lhs, rhs, minSteps }))
     : undefined;
-  const game = bootGame({ sound, particles, levels, activityName: play ? located.activity.name : undefined });
-  attachTutor(game);
+  const game = bootGame({
+    sound,
+    particles,
+    levels,
+    activityName: play ? located.activity.name : undefined,
+    deferTutorial: true,
+  });
+
+  const welcomeScreen = document.getElementById('welcome-screen');
+  const header = document.querySelector('body > header');
+  const app = document.querySelector('.app');
+  header.inert = true;
+  app.inert = true;
+  window.setTimeout(() => {
+    welcomeScreen.classList.add('is-leaving');
+    window.setTimeout(() => {
+      welcomeScreen.hidden = true;
+      header.inert = false;
+      app.inert = false;
+      attachTutor(game);
+      game.showTutorialIfNeeded();
+    }, 420);
+  }, 4000);
 }
